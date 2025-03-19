@@ -26,7 +26,7 @@ export default function FamilyInvitationAcceptPopup({ open, invitation, handleCl
         axios.post(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/invitations/" + invitation?.uuid, {
             userName: username
         })
-            .then((response) => {
+            .then(() => {
                 handleClose();
                 if(invitation !== null) handleDelete(invitation);
             })

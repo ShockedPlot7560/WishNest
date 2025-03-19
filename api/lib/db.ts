@@ -11,6 +11,7 @@ export const DB = open({
     return db;
 })
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function prepareAndAll(sql: string, params: any[]) : Promise<any[]> {
     const db = await DB;
     
@@ -21,6 +22,7 @@ export async function prepareAndAll(sql: string, params: any[]) : Promise<any[]>
     return rows;
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export async function prepareAndGet(sql: string, params: any[]) : Promise<any> {
     const db = await DB;
     

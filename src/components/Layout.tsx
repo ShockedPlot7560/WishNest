@@ -5,10 +5,10 @@ import SideMenu from './SideMenu';
 import MainGrid from "./MainGrid.tsx";
 import axios from "axios";
 import {useState} from "react";
-import {Card, CardContent} from "@mui/material";
+import {Card, CardContent, CssVarsTheme} from "@mui/material";
 import Typography from "@mui/material/Typography";
 
-export default function Layout({children}) {
+export default function Layout({children}: { children: React.ReactNode }) {
     const [errors, setErrors] = useState<string[]>([
     ]);
 
@@ -41,13 +41,16 @@ export default function Layout({children}) {
             Main content */}
             <Box
                 component="main"
-                sx={(theme) => ({
-                    flexGrow: 1,
-                    backgroundColor: theme.vars
-                        ? `rgba(${theme.vars.palette.background.defaultChannel} / 1)`
-                        : alpha(theme.palette.background.default, 1),
-                    overflow: 'auto',
-                })}
+                sx={(theme) => {
+                    const cssVarsTheme = theme as unknown as CssVarsTheme; 
+                    return {
+                        flexGrow: 1,
+                        backgroundColor: cssVarsTheme.vars
+                            ? `rgba(${cssVarsTheme.vars.palette.background.defaultChannel} / 1)`
+                            : alpha(cssVarsTheme.palette.background.default, 1),
+                        overflow: 'auto',
+                    };
+                }}
             >
                 <Stack
                     spacing={2}
@@ -69,7 +72,7 @@ export default function Layout({children}) {
                         }}
                     >
                         {errors.map((error, index) => {
-                            return <Card variant={"error"} sx={{
+                            return <Card className="MuiCard-error" sx={{
                                 padding: 0
                             }} key={index}>
                                 <CardContent sx={{

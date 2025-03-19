@@ -96,7 +96,7 @@ export async function check_user(req: CheckUserRequest, res: CheckUserResponse){
                 })
             })
         }
-    } catch (e) {
+    } catch {
         res.status(401).json({error: 'Login failed, an error occurred'});
     }
 }

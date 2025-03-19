@@ -10,7 +10,6 @@ import {
 } from "../../lib/crypto";
 import { uuid } from "uuidv4";
 import {checkPassword, hashPassword} from "../../lib/login";
-import { UserPrivateData } from "./user_private_data";
 import {DerivedKey, UserPrivateKey, UserPublicKey} from "../../lib/types";
 import {DB} from "./db.ts";
 
@@ -34,10 +33,9 @@ export async function getUserApi() {
 }
 
 export class UserApi {
-    db: Database;
-    private_data: UserPrivateData;
+    db!: Database;
 
-    _instance: UserApi;
+    static _instance: UserApi | undefined;
 
     constructor(db: Database) {
         if (UserApi._instance) {
@@ -46,11 +44,6 @@ export class UserApi {
         UserApi._instance = this;
 
         this.db = db;
-        this.private_data = new UserPrivateData(db, this);
-    }
-
-    privateData() : UserPrivateData {
-        return this.private_data;
     }
 
     async getUsers(): Promise<UnloggedUser[]> {

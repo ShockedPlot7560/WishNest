@@ -1,7 +1,7 @@
-import {alpha, Theme, Components} from '@mui/material/styles';
+import {alpha, Components, CssVarsTheme} from '@mui/material/styles';
 import { gray } from '../themePrimitives';
 
-export const surfacesCustomizations: Components<Theme> = {
+export const surfacesCustomizations: Components<CssVarsTheme> = {
     MuiAccordion: {
         defaultProps: {
             elevation: 0,
@@ -68,6 +68,14 @@ export const surfacesCustomizations: Components<Theme> = {
                     ...theme.applyStyles('dark', {
                         backgroundColor: gray[800],
                     }),
+                    '&.MuiCard-error': {
+                        border: `1px solid ${(theme.vars || theme).palette.error.main}`,
+                        boxShadow: 'none',
+                        background: alpha(theme.palette.error.main, 0.1),
+                        ...theme.applyStyles('dark', {
+                            background: alpha(theme.palette.error.main, 0.2),
+                        }),
+                    },
                     variants: [
                         {
                             props: {
@@ -79,19 +87,6 @@ export const surfacesCustomizations: Components<Theme> = {
                                 background: 'hsl(0, 0%, 100%)',
                                 ...theme.applyStyles('dark', {
                                     background: alpha(gray[900], 0.4),
-                                }),
-                            },
-                        },
-                        {
-                            props: {
-                                variant: 'error',
-                            },
-                            style: {
-                                border: `1px solid ${(theme.vars || theme).palette.error.main}`,
-                                boxShadow: 'none',
-                                background: alpha(theme.palette.error.main, 0.1),
-                                ...theme.applyStyles('dark', {
-                                    background: alpha(theme.palette.error.main, 0.2),
                                 }),
                             },
                         }

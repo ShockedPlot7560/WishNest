@@ -13,7 +13,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
     uuid: string,
     title: string,
     content: string
-}, private_data: null | GiftPrivateData, memberId: string, familyId: string, updatePrivateData: () => Promise<any>}) {
+}, private_data: null | GiftPrivateData, memberId: string, familyId: string, updatePrivateData: () => Promise<any>}) { // eslint-disable-line @typescript-eslint/no-explicit-any
     const [ open, setOpen ] = useState(false);
     const [message, setMessage] = useState<string|null>(null);
     const [members, setMembers] = useState<null | {uuid: string, name: string, email: string}[]>(null);
@@ -21,6 +21,13 @@ export default function GiftPrivateContentPopup(props: {gift: {
     const { user } = useAuth();
 
     useEffect(() => {
+        async function fetchMembers() {
+            return axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId)
+                .then(response => {
+                    setMembers(response.data.members);
+                });
+        }
+
         setChatLoading(true);
         Promise.all([
             props.updatePrivateData(),
@@ -28,20 +35,13 @@ export default function GiftPrivateContentPopup(props: {gift: {
         ]).finally(() => {
             setChatLoading(false);
         })
-    }, [open]);
-
-    async function fetchMembers() {
-        return axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId)
-            .then(response => {
-                setMembers(response.data.members);
-            });
-    }
+    }, [open, props]);
 
     function sendMessage() {
         axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.gift.uuid + "/message", {
             message: message
         })
-            .then(response => {
+            .then(() => {
                 setMessage("");
                 props.updatePrivateData();
             })

@@ -11,8 +11,6 @@ import {
 
 // Convert ArrayBuffer to Base64 string
 function arrayBufferToBase64(buffer: ArrayBuffer): string {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-expect-error
     return btoa(String.fromCharCode(...new Uint8Array(buffer)));
 }
 

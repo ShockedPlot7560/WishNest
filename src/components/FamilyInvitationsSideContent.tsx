@@ -23,7 +23,7 @@ export default function FamilyInvitationsSideContent() {
             .then(response => {
                 setInvitations(response.data);
             });
-    }, []);
+    }, [user?.uuid]);
 
     return (
         <>

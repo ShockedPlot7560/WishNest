@@ -263,7 +263,7 @@ export async function post_member_message(req: PostMemberMessageRequest, res: Po
                 return data;
             }
         )
-    } catch (e) {
+    } catch {
         res.json({
             error: "Error"
         })
@@ -305,7 +305,7 @@ export async function accept_gift(req: AcceptGiftRequest, res: AcceptGiftRespons
                 return data;
             }
         )
-    } catch (e) {
+    } catch {
         res.json({
             error: "Error"
         })
@@ -349,7 +349,7 @@ export async function deny_gift(req: AcceptGiftRequest, res: AcceptGiftResponse)
                 return data;
             }
         )
-    } catch (e) {
+    } catch {
         res.json({
             error: "Error"
         })
@@ -399,7 +399,7 @@ export type DeleteGiftResponse = BaseResponse<{
 }>;
 
 export async function delete_gift(req: DeleteGiftRequest, res: DeleteGiftResponse) {
-    const {familyUuid, userUuid, giftUuid} = req.params;
+    const {giftUuid} = req.params;
 
     const db = await DB;
 

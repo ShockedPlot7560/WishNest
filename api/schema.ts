@@ -13,17 +13,6 @@ async function createUserTable(db: Database) {
     `);
 }
 
-async function createUserPrivateDataTable(db: Database) {
-    await db.exec(`
-        CREATE TABLE IF NOT EXISTS user_private_data (
-            uuid TEXT PRIMARY KEY,
-            user_uuid TEXT NOT NULL,
-            private_data BIGBLOB NOT NULL,
-            FOREIGN KEY (user_uuid) REFERENCES users(uuid)
-        )
-    `);
-}
-
 async function createFamilyTable(db: Database) {
     await db.exec(`
         CREATE TABLE IF NOT EXISTS families (
@@ -137,8 +126,7 @@ async function createAll(db: Database) {
         createGroupUserTable(db),
         createGroupRequestUserTable(db),
         createGiftTable(db),
-        createCommentTable(db),
-        createUserPrivateDataTable(db)
+        createCommentTable(db)
     ])
 }
 

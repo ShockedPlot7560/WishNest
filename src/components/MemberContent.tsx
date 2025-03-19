@@ -3,8 +3,6 @@ import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useEffect, useState} from "react";
 import axios from "axios";
-import Button from "@mui/material/Button";
-import {Lock} from "@mui/icons-material";
 import {useAuth} from "../provider/AuthProvider.tsx";
 import GiftPrivateContentPopup from "./GiftPrivateContentPopup.tsx";
 import { GroupPrivateData } from "../../api/interfaces/index.ts";
@@ -18,14 +16,6 @@ export default function MemberContent(props: {member: null | {uuid: string, name
         content: string
     }[]>(null);
     const [privateData, setPrivateData] = useState<null | GroupPrivateData>(null);
-    const [memberData, setMemberData] = useState<null | {
-        gifts: {
-            uuid: string,
-            title: string,
-            content: string
-        }[],
-        private_data: null | GroupPrivateData
-    }>(null);
     const [loading, setLoading] = useState(true);
     const { user } = useAuth();
 

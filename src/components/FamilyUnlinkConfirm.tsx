@@ -11,7 +11,7 @@ interface FamilyUnlinkConfirmProps {
     open: boolean;
     family: Family|null;
     handleClose: () => void;
-    handleOk: (family: Family) => Promise<any>;
+    handleOk: (family: Family) => Promise<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export default function FamilyUnlinkConfirm({ open, family, handleClose, handleOk }: FamilyUnlinkConfirmProps) {

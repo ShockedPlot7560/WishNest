@@ -20,12 +20,12 @@ export default function ApproveGroupPopup(props: {familyId: string}) {
             .then(response => {
                 setRequestsToApprove(response.data);
             });
-    }, [props.familyId]);
+    }, [props.familyId, user?.uuid]);
 
     return (
         <>
         {requestsToApprove.length !== 0 && <Grid item xs={12}>
-            <Card variant={"error"}>
+            <Card className="MuiCard-error">
                 <CardContent>
                     <Typography gutterBottom>
                         Vous avez des demandes d'adhésion à approuver

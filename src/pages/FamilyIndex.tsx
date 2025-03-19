@@ -35,13 +35,13 @@ export default function FamilyIndex() {
         axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + familyId)
             .then(response => {
                 setFamily(response.data);
-                const currentUser = response.data.members.find(m => m.uuid === user?.uuid);
+                const currentUser = response.data.members.find((m: {uuid: string}) => m.uuid === user?.uuid);
                 if(currentUser) {
                     setChoosenMember(currentUser);
                     setChoosenMemberId(currentUser.uuid);
                     // sort array
                     const members = response.data.members;
-                    members.splice(members.findIndex(m => m.uuid === currentUser.uuid), 1);
+                    members.splice(members.findIndex((m: {uuid: string}) => m.uuid === currentUser.uuid), 1);
                     members.unshift(currentUser);
                     setFamily({...response.data, members});
                 }

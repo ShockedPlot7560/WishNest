@@ -3,8 +3,7 @@ import {DB, prepareAndAll, prepareAndGet} from "../lib/db";
 import {uuid} from "uuidv4";
 import {
     decryptGroupUserPrivateKey, decryptGroupUserPublicKey,
-    decryptPrivateData, decryptPrivateKey,
-    EncryptedData, encryptGroupUserPrivateKey, encryptGroupUserPublicKey,
+    encryptGroupUserPrivateKey, encryptGroupUserPublicKey,
     encryptPrivateData,
     generatePrimaryKeyPair,
     importUserPublicKey
@@ -185,8 +184,6 @@ export async function get_user_group_requests(req: GetUserGroupRequests, res: Ge
     const uuid: string = req.params.uuid;
     const familyUuid: string = req.params.familyUuid;
 
-    const db = await DB;
-
     const groupRequests: {
         group_uuid: string,
         user_uuid: string,
@@ -358,8 +355,6 @@ export type GetFamilyInvitationsResponse = BaseResponse<{
 }[]>;
 
 export async function get_family_invitations(req: GetFamilyInvitationsRequest, res: GetFamilyInvitationsResponse) {
-    const db = await DB;
-
     const familyUuid: string = req.params.familyUuid;
 
     const invitations: {
