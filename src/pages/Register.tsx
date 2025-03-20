@@ -69,7 +69,7 @@ export default function Register() {
         }
         const data = new FormData(event.currentTarget);
 
-        fetch(import.meta.env.VITE_API_BASE_URL + "/register", {
+        fetch(import.meta.env.VITE_BASE_URL + "/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

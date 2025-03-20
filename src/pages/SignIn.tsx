@@ -71,7 +71,7 @@ export default function SignIn() {
         }
         const data = new FormData(event.currentTarget);
 
-        fetch(import.meta.env.VITE_API_BASE_URL + "/login", {
+        fetch(import.meta.env.VITE_BASE_URL + "/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
