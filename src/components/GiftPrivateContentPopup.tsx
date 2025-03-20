@@ -14,6 +14,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
     title: string,
     content: string
 }, private_data: null | GiftPrivateData, memberId: string, familyId: string, updatePrivateData: () => Promise<any>}) { // eslint-disable-line @typescript-eslint/no-explicit-any
+    const {updatePrivateData} = props;
     const [ open, setOpen ] = useState(false);
     const [message, setMessage] = useState<string|null>(null);
     const [members, setMembers] = useState<null | {uuid: string, name: string, email: string}[]>(null);
@@ -30,12 +31,12 @@ export default function GiftPrivateContentPopup(props: {gift: {
 
         setChatLoading(true);
         Promise.all([
-            props.updatePrivateData(),
+            updatePrivateData(),
             fetchMembers()
         ]).finally(() => {
             setChatLoading(false);
         })
-    }, [open, props]);
+    }, [open]);
 
     function sendMessage() {
         axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.gift.uuid + "/message", {
@@ -43,7 +44,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
         })
             .then(() => {
                 setMessage("");
-                props.updatePrivateData();
+                updatePrivateData();
             })
     }
 
@@ -119,7 +120,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
                                             familyId={props.familyId}
                                             giftUuid={props.gift.uuid}
                                             memberId={props.memberId}
-                                            onUpdated={props.updatePrivateData}
+                                            onUpdated={updatePrivateData}
                                         />
                                     }
                                 </Box>

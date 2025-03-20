@@ -45,7 +45,7 @@ export default function SideMenu() {
                     flexDirection: 'column',
                 }}
             >
-                <MenuContent />
+                <MenuContent onClick={() => {}}/>
             </Box>
             <Stack
                 direction="row"
@@ -59,8 +59,7 @@ export default function SideMenu() {
             >
                 <Avatar
                     sizes="small"
-                    alt="Riley Carter"
-                    src="/static/images/avatar/7.jpg"
+                    alt={user?.email}
                     sx={{ width: 36, height: 36 }}
                 />
                 <Box sx={{ mr: 'auto' }}>

@@ -15,7 +15,7 @@ import {useAuth} from "../provider/AuthProvider.tsx";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 
-export default function FamilySideContent() {
+export default function FamilySideContent({onClick}: {onClick: () => void}) {
     const [families, setFamilies] = React.useState<Family[]|null>(null);
     const [openFamilyCreate, setOpenFamilyCreate] = React.useState<boolean>(false);
     const [openFamilyUnlink, setOpenFamilyUnlink] = React.useState<boolean>(false);
@@ -67,6 +67,7 @@ export default function FamilySideContent() {
                                     <LinkOff/>
                                 </IconButton>
                             }*/ onClick={() => {
+                                onClick();
                                 navigate("/families/" + item.uuid);
                             }}>
                                     <ListItemButton>

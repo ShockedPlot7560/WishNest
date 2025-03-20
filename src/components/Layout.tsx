@@ -7,6 +7,7 @@ import axios from "axios";
 import {useState} from "react";
 import {Card, CardContent, CssVarsTheme} from "@mui/material";
 import Typography from "@mui/material/Typography";
+import AppNavbar from './AppNavbar.tsx';
 
 export default function Layout({children}: { children: React.ReactNode }) {
     const [errors, setErrors] = useState<string[]>([
@@ -37,8 +38,8 @@ export default function Layout({children}: { children: React.ReactNode }) {
     return (
         <Box sx={{ display: 'flex' }}>
             <SideMenu />
-            {/*<AppNavbar />
-            Main content */}
+            <AppNavbar />
+            {/*Main content */}
             <Box
                 component="main"
                 sx={(theme) => {

@@ -1,4 +1,4 @@
-import {Box, Card, CardActions, CardContent, CircularProgress} from "@mui/material";
+import {Box, Card, CardActions, CardContent, CircularProgress, LinearProgress} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useEffect, useState} from "react";
@@ -38,6 +38,7 @@ export default function MemberContent(props: {member: null | {uuid: string, name
     }
 
     useEffect(() => {
+        setGifts(null);
         fetchPrivateData();
     }, [props.member]);
 
@@ -49,11 +50,12 @@ export default function MemberContent(props: {member: null | {uuid: string, name
             {props.member !== null && <>
                 <Box sx={{
                     display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     marginBottom: '1rem'
                 }}>
-                    <Typography variant="h3">
+                    <Typography variant="h3" sx={{ marginBottom: { xs: '1rem', sm: 0 } }}>
                         {user?.uuid === props.member.uuid ?
                             "Votre liste de souhaits" :
                             "Liste de souhaits de " + props.member.name}
@@ -66,7 +68,7 @@ export default function MemberContent(props: {member: null | {uuid: string, name
                     />}
                 </Box>
                 {loading && props.member !== null && <Stack sx={{mt: '2rem'}}>
-                    <CircularProgress size="4rem"/>
+                    <LinearProgress />
                 </Stack>}
                 {gifts !== null && gifts.map((gift, index) => (
                     <Card sx={{marginTop: '1rem'}} key={index}>
@@ -78,28 +80,32 @@ export default function MemberContent(props: {member: null | {uuid: string, name
                                 {gift.content}
                             </Typography>
                         </CardContent>
-                        <CardActions>
-                            {props.member?.uuid === user?.uuid && 
-                                <DeleteSelfGift
-                                familyId={props.familyId}
-                                giftUuid={gift.uuid}
-                                onDelete={() => {
-                                    fetchPrivateData();
-                                }}
-                            />}
-                            <GiftPrivateContentPopup 
-                                gift={gift} 
-                                memberId={props.member?.uuid ?? ''} 
-                                familyId={props.familyId}
-                                private_data={privateData === null ? null : privateData[gift.uuid]}
-                                updatePrivateData={fetchPrivateData}
-                            />
+                        <Stack spacing={2} direction={{ xs: 'column', sm: 'row' }} sx={{
+                            alignItems: 'center'
+                        }}>
+                            <Stack direction="row" spacing={2}>
+                                {props.member?.uuid === user?.uuid && 
+                                    <DeleteSelfGift
+                                    familyId={props.familyId}
+                                    giftUuid={gift.uuid}
+                                    onDelete={() => {
+                                        fetchPrivateData();
+                                    }}
+                                />}
+                                <GiftPrivateContentPopup 
+                                    gift={gift} 
+                                    memberId={props.member?.uuid ?? ''} 
+                                    familyId={props.familyId}
+                                    private_data={privateData === null ? null : privateData[gift.uuid]}
+                                    updatePrivateData={fetchPrivateData}
+                                />
+                            </Stack>
                             {privateData === null && <Typography>
                                 {props.member?.uuid === user?.uuid ?
                                     "Vous ne pouvez pas accéder aux données privées de votre propre liste de souhaits" :
                                     "Vous n'avez pas les droits pour accéder aux données privées de cette liste, attendez qu'un membre vous accepte"}
                             </Typography>}
-                        </CardActions>
+                        </Stack>
                     </Card>
                 ))}
                 {gifts !== null && gifts.length === 0 && <Typography sx={{

@@ -80,10 +80,10 @@ export default function FamilyIndex() {
             </Stack>}
             {family !== null && <Stack>
                 <Stack
-                    direction="row"
+                    direction={{ xs: "column", sm: "row" }}
                     spacing={2}
                     sx={{
-                        alignItems: "center",
+                        alignItems: { xs: "flex-start", sm: "center" },
                         margin: '2rem'
                     }}>
                     <h1>Famille {family?.name}</h1>
