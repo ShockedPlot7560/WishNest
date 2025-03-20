@@ -43,7 +43,13 @@ export async function add_user(req: AddUserRequest, res: AddUserResponse) {
     if(!email || !password){
         res.status(400).json({error: "Bad parameter"});
     }else{
-        const user = await (await userApi).createUser(email, password);
+        const userApi = await getUserApi();
+        const exist = await userApi.getUserByEmail(email);
+        if(exist){
+            res.status(400).json({error: "User already exists"});
+            return;
+        }
+        const user = await userApi.createUser(email, password);
 
         res.json({
             uuid: user.uuid,

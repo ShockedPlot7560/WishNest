@@ -13,6 +13,7 @@ import CssBaseline from "@mui/material/CssBaseline";
 import SignIn from "./pages/SignIn.tsx";
 import Index from "./pages/Index.tsx";
 import FamilyIndex from "./pages/FamilyIndex.tsx";
+import Register from './pages/Register.tsx';
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -20,6 +21,7 @@ const router = createBrowserRouter(
             <Route index element={<ProtectedRoute element={<Index/>}/>}/>
             <Route path={"families/:familyId"} element={<ProtectedRoute element={<FamilyIndex/>}/>}/>
             <Route path={"login"} element={<SignIn/>}/>
+            <Route path={"register"} element={<Register/>}/>
         </Route>
     )
 )

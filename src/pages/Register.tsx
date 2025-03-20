@@ -8,8 +8,7 @@ import Typography from '@mui/material/Typography';
 import Stack from '@mui/material/Stack';
 import MuiCard from '@mui/material/Card';
 import { styled } from '@mui/material/styles';
-import ColorModeSelect from './../theme/ColorModeSelect';
-import {useAuth} from "./../provider/AuthProvider.tsx";
+import ColorModeSelect from '../theme/ColorModeSelect.tsx';
 import {useNavigate} from "react-router-dom";
 
 const Card = styled(MuiCard)(({ theme }) => ({
@@ -31,7 +30,7 @@ const Card = styled(MuiCard)(({ theme }) => ({
     }),
 }));
 
-const SignInContainer = styled(Stack)(({ theme }) => ({
+const RegisterContainer = styled(Stack)(({ theme }) => ({
     height: 'calc((1 - var(--template-frame-height, 0)) * 100dvh)',
     minHeight: '100%',
     padding: theme.spacing(2),
@@ -54,14 +53,13 @@ const SignInContainer = styled(Stack)(({ theme }) => ({
     },
 }));
 
-export default function SignIn() {
+export default function Register() {
     const [emailError, setEmailError] = React.useState(false);
     const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
     const [passwordError, setPasswordError] = React.useState(false);
     const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
     const [globalError, setGlobalError] = React.useState(false);
     const [globalErrorMessage, setGlobalErrorMessage] = React.useState('');
-    const { setDerivedKey, setToken, setUser } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
@@ -71,7 +69,7 @@ export default function SignIn() {
         }
         const data = new FormData(event.currentTarget);
 
-        fetch(import.meta.env.VITE_BASE_URL + "/login", {
+        fetch(import.meta.env.VITE_BASE_URL + "/register", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -89,11 +87,7 @@ export default function SignIn() {
                     return;
                 }
 
-                setDerivedKey(data.derivedKey);
-                setToken(data.jwt);
-                setUser(data);
-
-                navigate('/', { replace: true });
+                navigate('/login', { replace: true });
             })
             .catch(() => {
                 setGlobalErrorMessage("An error occurred. Please try again later.");
@@ -104,6 +98,7 @@ export default function SignIn() {
     const validateInputs = () => {
         const email = document.getElementById('email') as HTMLInputElement;
         const password = document.getElementById('password') as HTMLInputElement;
+        const repeatPassword = document.getElementById('repeat-password') as HTMLInputElement;
 
         let isValid = true;
 
@@ -125,11 +120,20 @@ export default function SignIn() {
             setPasswordErrorMessage('');
         }
 
+        if (password.value !== repeatPassword.value) {
+            setPasswordError(true);
+            setPasswordErrorMessage('Passwords do not match.');
+            isValid = false;
+        } else {
+            setPasswordError(false);
+            setPasswordErrorMessage('');
+        }
+
         return isValid;
     };
 
     return (
-        <SignInContainer direction="column" justifyContent="space-between">
+        <RegisterContainer direction="column" justifyContent="space-between">
             <ColorModeSelect sx={{ position: 'fixed', top: '1rem', right: '1rem' }} />
             <Card variant="outlined">
                 <Typography
@@ -137,7 +141,7 @@ export default function SignIn() {
                     variant="h4"
                     sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
                 >
-                    Sign in
+                    Register
                 </Typography>
                 <Box
                     component="form"
@@ -185,26 +189,33 @@ export default function SignIn() {
                             color={passwordError ? 'error' : 'primary'}
                         />
                     </FormControl>
+                    <FormControl>
+                        <FormLabel htmlFor="repeat-password">Repeat Password</FormLabel>
+                        <TextField
+                            error={passwordError}
+                            helperText={passwordErrorMessage}
+                            name="repeat-password"
+                            placeholder="••••••"
+                            type="password"
+                            id="repeat-password"
+                            autoComplete="current-password"
+                            autoFocus
+                            required
+                            fullWidth
+                            variant="outlined"
+                            color={passwordError ? 'error' : 'primary'}
+                        />
+                    </FormControl>
                     <Button
                         type="submit"
                         fullWidth
                         variant="contained"
                         onClick={validateInputs}
                     >
-                        Sign in
+                        Register
                     </Button>
-                    <Typography variant="body2" align="center">
-                        Don't have an account?{' '}
-                        <Button
-                            variant="text"
-                            color="primary"
-                            onClick={() => navigate('/register')}
-                        >
-                            Register
-                        </Button>
-                    </Typography>
                 </Box>
             </Card>
-        </SignInContainer>
+        </RegisterContainer>
     );
 }
