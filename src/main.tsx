@@ -14,6 +14,7 @@ import SignIn from "./pages/SignIn.tsx";
 import Index from "./pages/Index.tsx";
 import FamilyIndex from "./pages/FamilyIndex.tsx";
 import Register from './pages/Register.tsx';
+import axios from 'axios';
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -25,6 +26,16 @@ const router = createBrowserRouter(
         </Route>
     )
 )
+
+const token = localStorage.getItem("token");
+const derivedKey = localStorage.getItem("derivedKey");
+
+if (token) {
+    axios.defaults.headers.common["Authorization"] = "Bearer " + token;
+}
+if (derivedKey) {
+    axios.defaults.headers.common["derivedKey"] = derivedKey;
+}
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
