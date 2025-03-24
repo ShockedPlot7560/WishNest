@@ -58,7 +58,9 @@ export default function FamilySideContent({onClick, families, updateFamilies}: {
                                 onClick();
                                 navigate("/families/" + item.uuid);
                             }}>
-                                    <ListItemButton>
+                                    <ListItemButton selected={
+                                        window.location.pathname === "/families/" + item.uuid
+                                    }>
                                             <ListItemText primary={item.name} color={item.needAttention ? "error" : "initial"} />
                                     </ListItemButton>
                             </ListItem>
