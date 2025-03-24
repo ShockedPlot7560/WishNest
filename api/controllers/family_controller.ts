@@ -372,9 +372,13 @@ export type AddGiftResponse = BaseResponse<{
 
 export async function add_gift(req: AddGiftRequest, res: AddGiftResponse) {
     const {familyUuid, userUuid} = req.params;
-    const {title, content} = req.body;
+    let {title, content} = req.body;
 
-    if(!title || !content){
+    if(!content) {
+        content = "";
+    }
+
+    if(!title){
         res.status(400).json({error: 'Bad parameter'});
         return;
     }

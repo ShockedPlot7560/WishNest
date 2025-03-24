@@ -8,6 +8,7 @@ import {useState} from "react";
 import {Card, CardContent, CssVarsTheme} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import AppNavbar from './AppNavbar.tsx';
+import { Height } from '@mui/icons-material';
 
 export default function Layout({children}: { children: React.ReactNode }) {
     const [errors, setErrors] = useState<string[]>([
@@ -57,6 +58,7 @@ export default function Layout({children}: { children: React.ReactNode }) {
                     spacing={2}
                     sx={{
                         alignItems: 'center',
+                        position: 'relative',
                         mx: 3,
                         pb: 5,
                         mt: { xs: 8, md: 0 },
@@ -88,6 +90,27 @@ export default function Layout({children}: { children: React.ReactNode }) {
                     {/*<Header />
                     <MainGrid />*/}
                     <MainGrid>{children}</MainGrid>
+                    <Box
+                        component="footer"
+                        sx={{
+                            mt: 'auto',
+                            py: 3,
+                            px: 2,
+                            textAlign: 'center',
+                            position: 'absolute',
+                            bottom: 0
+                        }}
+                    >
+                        <Typography variant="body2" color="text.secondary">
+                            WishNest, an open-source project
+                        </Typography>
+                        {/* Link to github */}
+                        <Typography variant="body2" color="text.secondary">
+                            <a href="https://github.com/ShockedPlot7560/WishNest" target="_blank" rel="noopener noreferrer">
+                                GitHub
+                            </a>
+                        </Typography>
+                    </Box>
                 </Stack>
             </Box>
         </Box>
