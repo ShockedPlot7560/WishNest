@@ -1,25 +1,21 @@
 import * as React from "react";
 import {Family} from "../../api/interfaces";
-import {useEffect} from "react";
-import axios from "axios";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {Badge, CircularProgress} from "@mui/material";
 import FamilyCreatePopup from "./FamilyCreatePopup.tsx";
-import FamilyUnlinkConfirm from "./FamilyUnlinkConfirm.tsx";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
-import {useAuth} from "../provider/AuthProvider.tsx";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 
 export default function FamilySideContent({onClick, families, updateFamilies}: {onClick: () => void, families: Family[]|null, updateFamilies: () => void}) {
     const [openFamilyCreate, setOpenFamilyCreate] = React.useState<boolean>(false);
-    const [openFamilyUnlink, setOpenFamilyUnlink] = React.useState<boolean>(false);
-    const [familyUnlink] = React.useState<Family | null>(null);
-    const { user } = useAuth();
+    // const [openFamilyUnlink, setOpenFamilyUnlink] = React.useState<boolean>(false);
+    // const [familyUnlink] = React.useState<Family | null>(null);
+    // const { user } = useAuth();
     const navigate = useNavigate();
 
     /*async function removeFromFamily(family: Family) {

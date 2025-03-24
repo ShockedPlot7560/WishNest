@@ -8,7 +8,6 @@ import {useState} from "react";
 import {Card, CardContent, CssVarsTheme} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import AppNavbar from './AppNavbar.tsx';
-import { Height } from '@mui/icons-material';
 
 export default function Layout({children}: { children: React.ReactNode }) {
     const [errors, setErrors] = useState<string[]>([

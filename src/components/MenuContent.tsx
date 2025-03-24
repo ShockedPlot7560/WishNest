@@ -24,7 +24,7 @@ export default function MenuContent({onClick}: {onClick: () => void}) {
         axios.get(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/families")
             .then(response => {
                 setFamilies(response.data);
-            }).catch(error => {
+            }).catch(() => {
                 setFamilies([]);
             });
     }
