@@ -96,7 +96,7 @@ export default function SignIn() {
                 navigate('/', { replace: true });
             })
             .catch(() => {
-                setGlobalErrorMessage("An error occurred. Please try again later.");
+                setGlobalErrorMessage("Une erreur est survenue, veuillez réessayer.");
                 setGlobalError(true);
             });
     };
@@ -109,7 +109,7 @@ export default function SignIn() {
 
         if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
             setEmailError(true);
-            setEmailErrorMessage('Please enter a valid email address.');
+            setEmailErrorMessage('Veuillez entrer une adresse e-mail valide.');
             isValid = false;
         } else {
             setEmailError(false);
@@ -118,7 +118,7 @@ export default function SignIn() {
 
         if (!password.value || password.value.length < 6) {
             setPasswordError(true);
-            setPasswordErrorMessage('Password must be at least 6 characters long.');
+            setPasswordErrorMessage('Le mot de passe doit comporter au moins 6 caractères.');
             isValid = false;
         } else {
             setPasswordError(false);
@@ -137,7 +137,7 @@ export default function SignIn() {
                     variant="h4"
                     sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
                 >
-                    Sign in
+                    Se connecter
                 </Typography>
                 <Box
                     component="form"
@@ -169,7 +169,7 @@ export default function SignIn() {
                         />
                     </FormControl>
                     <FormControl>
-                        <FormLabel htmlFor="password">Password</FormLabel>
+                        <FormLabel htmlFor="password">Mot de passe</FormLabel>
                         <TextField
                             error={passwordError}
                             helperText={passwordErrorMessage}
@@ -191,16 +191,17 @@ export default function SignIn() {
                         variant="contained"
                         onClick={validateInputs}
                     >
-                        Sign in
+                        Se connecter
                     </Button>
                     <Typography variant="body2" align="center">
-                        Don't have an account?{' '}
+                        Pas de compte ?
                         <Button
                             variant="text"
                             color="primary"
+                            sx={{ textTransform: 'none', ml: 1 }}
                             onClick={() => navigate('/register')}
                         >
-                            Register
+                            S'inscrire
                         </Button>
                     </Typography>
                 </Box>

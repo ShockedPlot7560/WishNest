@@ -90,7 +90,7 @@ export default function Register() {
                 navigate('/login', { replace: true });
             })
             .catch(() => {
-                setGlobalErrorMessage("An error occurred. Please try again later.");
+                setGlobalErrorMessage("Une erreur est survenue, veuillez réessayer.");
                 setGlobalError(true);
             });
     };
@@ -104,7 +104,7 @@ export default function Register() {
 
         if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
             setEmailError(true);
-            setEmailErrorMessage('Please enter a valid email address.');
+            setEmailErrorMessage('Veuillez entrer une adresse e-mail valide.');
             isValid = false;
         } else {
             setEmailError(false);
@@ -113,7 +113,7 @@ export default function Register() {
 
         if (!password.value || password.value.length < 6) {
             setPasswordError(true);
-            setPasswordErrorMessage('Password must be at least 6 characters long.');
+            setPasswordErrorMessage('Le mot de passe doit contenir au moins 6 caractères.');
             isValid = false;
         } else {
             setPasswordError(false);
@@ -122,7 +122,7 @@ export default function Register() {
 
         if (password.value !== repeatPassword.value) {
             setPasswordError(true);
-            setPasswordErrorMessage('Passwords do not match.');
+            setPasswordErrorMessage('Les mots de passe ne correspondent pas.');
             isValid = false;
         } else {
             setPasswordError(false);
@@ -141,7 +141,7 @@ export default function Register() {
                     variant="h4"
                     sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
                 >
-                    Register
+                    S'inscrire
                 </Typography>
                 <Box
                     component="form"
@@ -173,7 +173,7 @@ export default function Register() {
                         />
                     </FormControl>
                     <FormControl>
-                        <FormLabel htmlFor="password">Password</FormLabel>
+                        <FormLabel htmlFor="password">Mot de passe</FormLabel>
                         <TextField
                             error={passwordError}
                             helperText={passwordErrorMessage}
@@ -190,7 +190,7 @@ export default function Register() {
                         />
                     </FormControl>
                     <FormControl>
-                        <FormLabel htmlFor="repeat-password">Repeat Password</FormLabel>
+                        <FormLabel htmlFor="repeat-password">Répéter le mot de passe</FormLabel>
                         <TextField
                             error={passwordError}
                             helperText={passwordErrorMessage}
@@ -212,8 +212,19 @@ export default function Register() {
                         variant="contained"
                         onClick={validateInputs}
                     >
-                        Register
+                        S'inscrire
                     </Button>
+                    <Typography variant="body2" align="center">
+                        Déjà un compte ?
+                        <Button
+                            variant="text"
+                            color="primary"
+                            sx={{ textTransform: 'none', ml: 1 }}
+                            onClick={() => navigate('/login')}
+                        >
+                            Se connecter
+                        </Button>
+                    </Typography>
                 </Box>
             </Card>
         </RegisterContainer>
