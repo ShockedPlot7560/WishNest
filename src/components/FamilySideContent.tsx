@@ -15,27 +15,19 @@ import {useAuth} from "../provider/AuthProvider.tsx";
 import {useNavigate} from "react-router-dom";
 import Box from "@mui/material/Box";
 
-export default function FamilySideContent({onClick}: {onClick: () => void}) {
-    const [families, setFamilies] = React.useState<Family[]|null>(null);
+export default function FamilySideContent({onClick, families, updateFamilies}: {onClick: () => void, families: Family[]|null, updateFamilies: () => void}) {
     const [openFamilyCreate, setOpenFamilyCreate] = React.useState<boolean>(false);
     const [openFamilyUnlink, setOpenFamilyUnlink] = React.useState<boolean>(false);
     const [familyUnlink] = React.useState<Family | null>(null);
     const { user } = useAuth();
     const navigate = useNavigate();
 
-    useEffect(() => {
-        axios.get(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/families")
-            .then(response => {
-                setFamilies(response.data);
-            });
-    }, [user?.uuid]);
-
-    async function removeFromFamily(family: Family) {
+    /*async function removeFromFamily(family: Family) {
         await axios.delete(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/families/" + family.uuid)
             .then(() => {
                 setFamilies((families ?? []).filter(f => f.uuid !== family.uuid));
             });
-    }
+    }*/
 
     return (
         <>
@@ -47,10 +39,10 @@ export default function FamilySideContent({onClick}: {onClick: () => void}) {
             </Stack>}
             <FamilyCreatePopup open={openFamilyCreate} handleClose={() => {
                 setOpenFamilyCreate(false);
-            }} handleAdd={(family) => {
-                setFamilies([...(families ?? []), family]);
+            }} handleAdd={() => {
+                updateFamilies();
             }}/>
-            <FamilyUnlinkConfirm open={openFamilyUnlink} family={familyUnlink} handleClose={() => setOpenFamilyUnlink(false)} handleOk={(family) => removeFromFamily(family)}/>
+            {/* <FamilyUnlinkConfirm open={openFamilyUnlink} family={familyUnlink} handleClose={() => setOpenFamilyUnlink(false)} handleOk={(family) => removeFromFamily(family)}/> */}
             <List>
                 {families && families.map((item: Family) => {
 

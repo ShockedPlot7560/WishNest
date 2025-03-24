@@ -67,9 +67,7 @@ async function createGroupUserTable(db: Database) {
             group_uuid TEXT NOT NULL,
             user_uuid TEXT NOT NULL,
             private_key BIGBLOB NOT NULL,
-            private_key_iv BIGBLOB NOT NULL,
             public_key BIGBLOB NOT NULL,
-            public_key_iv BIGBLOB NOT NULL,
             PRIMARY KEY (group_uuid, user_uuid),
             FOREIGN KEY (group_uuid) REFERENCES groups(uuid),
             FOREIGN KEY (user_uuid) REFERENCES user_family(user_uuid)

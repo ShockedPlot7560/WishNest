@@ -12,7 +12,7 @@ import ListItemText from "@mui/material/ListItemText";
 import {useAuth} from "../provider/AuthProvider.tsx";
 import FamilyInvitationPopup from "./FamilyInvitationPopup.tsx";
 
-export default function FamilyInvitationsSideContent() {
+export default function FamilyInvitationsSideContent({refreshFamilies}: {refreshFamilies: () => void}) {
     const [invitations, setInvitations] = React.useState<Invitation[]|null>(null);
     const [openFamilyInvitation, setOpenFamilyInvitation] = React.useState<boolean>(false);
     const [selectedInvitation, setSelectedInvitation] = React.useState<Invitation|null>(null);
@@ -39,21 +39,20 @@ export default function FamilyInvitationsSideContent() {
                 handleClose={() => setOpenFamilyInvitation(false)}
                 handleDelete={(invitation: Invitation) => {
                     setInvitations((invitations ?? [])?.filter((item: Invitation) => item.uuid !== invitation.uuid));
+                    refreshFamilies();
                 }}
             />
             <List>
                 {invitations && invitations.map((item: Invitation) => {
                     return (
-                        <>
-                            <ListItem key={item.uuid} disablePadding sx={{ display: 'block' }} onClick={() => {
-                                setSelectedInvitation(item);
-                                setOpenFamilyInvitation(true);
-                            }}>
-                                <ListItemButton>
-                                    <ListItemText primary={item.family.name} />
-                                </ListItemButton>
-                            </ListItem>
-                        </>
+                        <ListItem key={item.uuid} disablePadding sx={{ display: 'block' }} onClick={() => {
+                            setSelectedInvitation(item);
+                            setOpenFamilyInvitation(true);
+                        }}>
+                            <ListItemButton>
+                                <ListItemText primary={item.family.name} />
+                            </ListItemButton>
+                        </ListItem>
                     )})}
                 {invitations && invitations.length === 0 && <ListItem>
                     <ListItemText

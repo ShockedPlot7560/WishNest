@@ -20,15 +20,18 @@ interface FamilyInvitationPopupProps {
 export default function FamilyInvitationAcceptPopup({ open, invitation, handleClose, handleDelete }: FamilyInvitationPopupProps) {
     const [username, setUsername] = React.useState<string>("");
     const {user} = useAuth();
+    const [loading, setLoading] = React.useState<boolean>(false);
 
     function onSubmit(event: React.FormEvent<HTMLFormElement>){
         event.preventDefault();
+        setLoading(true);
         axios.post(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/invitations/" + invitation?.uuid, {
             userName: username
         })
             .then(() => {
                 handleClose();
                 if(invitation !== null) handleDelete(invitation);
+                setLoading(false);
             })
     }
 
@@ -65,7 +68,7 @@ export default function FamilyInvitationAcceptPopup({ open, invitation, handleCl
             </DialogContent>
             <DialogActions sx={{ pb: 3, px: 3 }}>
                 <Button onClick={handleClose}>Annuler</Button>
-                <Button variant="contained" type="submit">
+                <Button variant="contained" type="submit" disabled={loading}>
                     Continuer
                 </Button>
             </DialogActions>

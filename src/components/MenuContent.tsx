@@ -9,10 +9,29 @@ import {useAuth} from "../provider/AuthProvider.tsx";
 import {useNavigate} from "react-router-dom";
 import FamilySideContent from "./FamilySideContent.tsx";
 import FamilyInvitationsSideContent from "./FamilyInvitationsSideContent.tsx";
+import { useEffect, useState } from 'react';
+import { Family } from '../../api/interfaces/index.ts';
+import axios from 'axios';
 
 export default function MenuContent({onClick}: {onClick: () => void}) {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const [families, setFamilies] = useState<Family[]|null>(null);
+    const { user } = useAuth();
+
+    function fetchFamilies() {
+        setFamilies(null);
+        axios.get(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/families")
+            .then(response => {
+                setFamilies(response.data);
+            }).catch(error => {
+                setFamilies([]);
+            });
+    }
+
+    useEffect(() => {
+        fetchFamilies();
+    }, [user?.uuid]);
 
     const secondaryListItems = [
         { text: 'Se déconnecter', icon: <LogoutOutlined />, action: () => {
@@ -24,8 +43,8 @@ export default function MenuContent({onClick}: {onClick: () => void}) {
     return (
         <Stack sx={{ flexGrow: 1, p: 1, justifyContent: 'space-between' }}>
             <Stack>
-                <FamilySideContent onClick={onClick}/>
-                <FamilyInvitationsSideContent/>
+                <FamilySideContent onClick={onClick} families={families} updateFamilies={fetchFamilies}/>
+                <FamilyInvitationsSideContent refreshFamilies={fetchFamilies}/>
             </Stack>
             <List dense>
                 {secondaryListItems.map((item, index) => (
