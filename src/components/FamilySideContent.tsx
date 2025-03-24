@@ -19,7 +19,7 @@ export default function FamilySideContent({onClick, families, updateFamilies}: {
     const navigate = useNavigate();
 
     /*async function removeFromFamily(family: Family) {
-        await axios.delete(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/families/" + family.uuid)
+        await axios.delete("/users/" + user?.uuid + "/families/" + family.uuid)
             .then(() => {
                 setFamilies((families ?? []).filter(f => f.uuid !== family.uuid));
             });

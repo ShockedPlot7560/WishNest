@@ -21,7 +21,7 @@ export default function MemberContent(props: {member: null | {uuid: string, name
 
     function fetchPrivateData() {
         setLoading(true);
-        return axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.member?.uuid)
+        return axios.get("/family/" + props.familyId + "/member/" + props.member?.uuid)
             .then(response => {
                 console.log(response.data);
                 setGifts(response.data.gifts);

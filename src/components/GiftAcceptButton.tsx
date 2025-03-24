@@ -14,7 +14,7 @@ export default function GiftAcceptButton(props: {
 
     function acceptGift() {
         setLoading(true);
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.giftUuid + "/accept")
+        axios.post("/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.giftUuid + "/accept")
             .finally(() => {
                 setLoading(false);
                 props.onUpdated();

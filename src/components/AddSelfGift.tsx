@@ -16,7 +16,7 @@ export default function AddSelfGift(props: {
 
     function create() {
         setLoading(true);
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + user?.uuid + "/gift", {
+        axios.post("/family/" + props.familyId + "/member/" + user?.uuid + "/gift", {
             title: title,
             content: content
         })

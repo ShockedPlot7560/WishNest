@@ -23,7 +23,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
 
     useEffect(() => {
         async function fetchMembers() {
-            return axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId)
+            return axios.get("/family/" + props.familyId)
                 .then(response => {
                     setMembers(response.data.members);
                 });
@@ -39,7 +39,7 @@ export default function GiftPrivateContentPopup(props: {gift: {
     }, [open]);
 
     function sendMessage() {
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.gift.uuid + "/message", {
+        axios.post("/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.gift.uuid + "/message", {
             message: message
         })
             .then(() => {

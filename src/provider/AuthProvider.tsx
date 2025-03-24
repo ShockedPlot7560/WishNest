@@ -1,7 +1,6 @@
 import axios from "axios";
 import {Context, createContext, SetStateAction, useContext, useEffect, useMemo, useState} from "react";
 import {LoggedUser} from "../../api/lib/users.ts";
-import { useNavigate } from "react-router-dom";
 
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment

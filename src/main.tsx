@@ -15,6 +15,7 @@ import Index from "./pages/Index.tsx";
 import FamilyIndex from "./pages/FamilyIndex.tsx";
 import Register from './pages/Register.tsx';
 import axios from 'axios';
+import AxiosProvider from './provider/AxiosProvider.tsx';
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -41,6 +42,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <AppTheme>
           <CssBaseline enableColorScheme />
+          <AxiosProvider/>
           <AuthProvider>
                 <RouterProvider router={router}/>
           </AuthProvider>

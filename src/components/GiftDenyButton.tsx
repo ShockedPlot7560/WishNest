@@ -14,7 +14,7 @@ export default function GiftDenyButton(props: {
 
     function denyGift() {
         setLoading(true);
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.giftUuid + "/deny")
+        axios.post("/family/" + props.familyId + "/member/" + props.memberId + "/gift/" + props.giftUuid + "/deny")
             .finally(() => {
                 setLoading(false);
                 props.onUpdated();

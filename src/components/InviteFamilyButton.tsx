@@ -23,7 +23,7 @@ export default function InviteFamilyButton(props: {familyId: string, onInvite: (
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
 
-        await axios.post(import.meta.env.VITE_API_BASE_URL + "/families/"+props.familyId+"/invitations", {
+        await axios.post("/families/"+props.familyId+"/invitations", {
             email: email
         }).then((response) => {
             if(response.data.success){

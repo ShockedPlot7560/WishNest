@@ -19,7 +19,7 @@ export default function FamilyInvitationsSideContent({refreshFamilies}: {refresh
     const { user } = useAuth();
 
     useEffect(() => {
-        axios.get(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/invitations")
+        axios.get("/users/" + user?.uuid + "/invitations")
             .then(response => {
                 setInvitations(response.data);
             });

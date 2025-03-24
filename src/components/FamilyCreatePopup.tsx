@@ -28,7 +28,7 @@ export default function FamilyCreatePopup({ open, handleClose, handleAdd }: Fami
             userName: userName
         };
 
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/users/"+user?.uuid + "/families", data)
+        axios.post("/users/"+user?.uuid + "/families", data)
             .then(response => {
                 if(!response.data.error){
                     handleAdd(response.data);

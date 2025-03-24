@@ -32,7 +32,7 @@ export default function FamilyIndex() {
     const { user } = useAuth();
 
     useEffect(() => {
-        axios.get(import.meta.env.VITE_API_BASE_URL + "/family/" + familyId)
+        axios.get("/family/" + familyId)
             .then(response => {
                 setFamily(response.data);
                 const currentUser = response.data.members.find((m: {uuid: string}) => m.uuid === user?.uuid);
@@ -49,7 +49,7 @@ export default function FamilyIndex() {
     }, [familyId, user?.uuid]);
 
     async function updateInvitations(familyId: string) {
-        await axios.get(import.meta.env.VITE_API_BASE_URL + "/families/"+familyId+"/invitations")
+        await axios.get("/families/"+familyId+"/invitations")
             .then((response) => {
                 setInvitations(response.data);
             });

@@ -27,7 +27,7 @@ export default function FamilyInvitationPopup({ open, invitation, handleClose, h
     }
 
     function deny() {
-        axios.delete(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/invitations/" + invitation?.uuid)
+        axios.delete("/users/" + user?.uuid + "/invitations/" + invitation?.uuid)
             .then((response) => {
                 console.log(response);
                 handleClose();

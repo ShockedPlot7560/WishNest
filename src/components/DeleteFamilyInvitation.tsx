@@ -13,7 +13,7 @@ export default function DeleteFamilyInvitation(props: {uuid: string, onDelete: (
             loading={loading}
             onClick={() => {
                 setLoading(true);
-                axios.delete(import.meta.env.VITE_API_BASE_URL + "/invitations/"+props.uuid)
+                axios.delete("/invitations/"+props.uuid)
                     .then(() => {
                         props.onDelete();
                     }).finally(() => setLoading(false));

@@ -9,7 +9,7 @@ export default function ApproveGroupRequestButton (props: {groupUuid: string, ta
 
     const acceptGroupRequest = async (groupUuid: string, targetUuid: string) => {
         setLoading(true);
-        await axios.post(import.meta.env.VITE_API_BASE_URL + "/users/"+targetUuid+"/groups/"+groupUuid+"/accept")
+        await axios.post("/users/"+targetUuid+"/groups/"+groupUuid+"/accept")
             .then(response => {
                 if(response.data.success){
                     props.onSuccess();

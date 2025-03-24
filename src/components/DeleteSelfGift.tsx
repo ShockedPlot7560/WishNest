@@ -15,7 +15,7 @@ export default function DeleteSelfGift(props: {
 
     function del() {
         setLoading(true);
-        axios.delete(import.meta.env.VITE_API_BASE_URL + "/family/" + props.familyId + "/member/" + user?.uuid + "/gift/" + props.giftUuid)
+        axios.delete("/family/" + props.familyId + "/member/" + user?.uuid + "/gift/" + props.giftUuid)
             .finally(() => {
                 setLoading(false);
                 props.onDelete();

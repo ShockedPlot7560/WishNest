@@ -16,7 +16,7 @@ export default function ApproveGroupPopup(props: {familyId: string}) {
     const { user } = useAuth();
 
     useEffect(() => {
-        axios.get(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/family/" + props.familyId + "/requests")
+        axios.get("/users/" + user?.uuid + "/family/" + props.familyId + "/requests")
             .then(response => {
                 setRequestsToApprove(response.data);
             });

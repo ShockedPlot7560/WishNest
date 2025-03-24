@@ -25,7 +25,7 @@ export default function FamilyInvitationAcceptPopup({ open, invitation, handleCl
     function onSubmit(event: React.FormEvent<HTMLFormElement>){
         event.preventDefault();
         setLoading(true);
-        axios.post(import.meta.env.VITE_API_BASE_URL + "/users/" + user?.uuid + "/invitations/" + invitation?.uuid, {
+        axios.post("/users/" + user?.uuid + "/invitations/" + invitation?.uuid, {
             userName: username
         })
             .then(() => {
