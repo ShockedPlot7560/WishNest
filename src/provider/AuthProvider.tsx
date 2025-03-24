@@ -1,6 +1,7 @@
 import axios from "axios";
 import {Context, createContext, SetStateAction, useContext, useEffect, useMemo, useState} from "react";
 import {LoggedUser} from "../../api/lib/users.ts";
+import { useNavigate } from "react-router-dom";
 
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -107,5 +108,18 @@ const AuthProvider = ({children}) => {
 export const useAuth = () => {
     return useContext(AuthContext);
 };
+
+axios.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            localStorage.removeItem("token");
+            localStorage.removeItem("derivedKey");
+            localStorage.removeItem("user");
+            window.location.href = "/login";
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default AuthProvider;
