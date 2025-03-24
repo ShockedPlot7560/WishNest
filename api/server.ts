@@ -23,12 +23,15 @@ import {
     get_user_group_requests
 } from "./controllers/invitations_controller";
 import {authenticated} from "./controllers/controllers";
+import * as dotenv from 'dotenv'
 
 const app = express();
 const PORT = 3000;
 
+dotenv.config()
+
 // Middleware
-app.use(cors({ origin: '*' })); // Autorise toutes les requêtes cross-origin
+app.use(cors({ origin: process.env.VITE_FRONT_URL })); // Autorise toutes les requêtes cross-origin
 app.use(express.json()); // Permet de lire le JSON dans les requêtes POST
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.url}`);
