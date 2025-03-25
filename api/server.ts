@@ -30,7 +30,8 @@ import { uuid } from 'uuidv4';
 const app = express();
 const PORT = 3000;
 
-dotenv.config()
+dotenv.config();
+dotenv.config({ path: `.env.local`, override: true });
 
 // Middleware
 app.use(cors({ origin: process.env.VITE_FRONT_URL })); // Autorise toutes les requêtes cross-origin
