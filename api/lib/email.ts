@@ -18,7 +18,7 @@ export const sendMail = async (from: string, to: string, subject: string, text: 
         throw new Error('Text and html cannot be null');
     }
 
-    let mailOptions = {
+    let mailOptions: { from: string; to: string; subject: string; text?: string; html?: string } = {
         from: from,
         to: to,
         subject: subject
