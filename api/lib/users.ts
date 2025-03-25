@@ -12,6 +12,7 @@ import { uuid } from "uuidv4";
 import {checkPassword, hashPassword} from "../../lib/login";
 import {DerivedKey, UserPrivateKey, UserPublicKey} from "../../lib/types";
 import {DB} from "./db.ts";
+import { logger } from "./logger.ts";
 
 export interface UnloggedUser {
     uuid: string,
@@ -102,6 +103,7 @@ export class UserApi {
     }
 
     async createUser(email: string, password: string) : Promise<UnloggedUser> {
+        logger.debug("Creating user with email: " + email);
         const userUuid: string = uuid();
         const userKeyPair: CryptoKeyPair = await generateUserKeyPair();
         const userSalt = await generateSalt();

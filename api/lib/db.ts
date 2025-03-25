@@ -1,6 +1,7 @@
 import {open} from "sqlite";
 import sqlite3 from "sqlite3";
 import {createAll} from "../schema";
+import { logger } from "./logger";
 
 export const DB = open({
     filename: 'api/data/global.db',

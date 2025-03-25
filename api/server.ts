@@ -24,6 +24,8 @@ import {
 } from "./controllers/invitations_controller";
 import {authenticated} from "./controllers/controllers";
 import * as dotenv from 'dotenv'
+import { logger } from './lib/logger';
+import { uuid } from 'uuidv4';
 
 const app = express();
 const PORT = 3000;
@@ -34,8 +36,10 @@ dotenv.config()
 app.use(cors({ origin: process.env.VITE_FRONT_URL })); // Autorise toutes les requêtes cross-origin
 app.use(express.json()); // Permet de lire le JSON dans les requêtes POST
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
+    const reqId = uuid();
+    logger.info(`> [${reqId}] ${req.method} ${req.url} `);
     next();
+    logger.info(`< [${reqId}] ${res.statusCode} ${res.statusMessage}`);
 });
 const apiPrefix = '/api';
 app.use(apiPrefix, authenticated);
@@ -112,6 +116,6 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 
     // Démarrer le serveur
     app.listen(PORT, () => {
-        console.log(`API running on http://localhost:${PORT}`);
+        logger.info(`API running on http://localhost:${PORT}`);
     });
 })();

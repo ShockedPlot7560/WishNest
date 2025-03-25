@@ -1,4 +1,5 @@
 import { Database } from "sqlite";
+import { logger } from "./lib/logger";
 
 async function createUserTable(db: Database) {
     await db.exec(`
@@ -115,6 +116,7 @@ async function createCommentTable(db: Database) {
 }
 
 async function createAll(db: Database) {
+    logger.info("Creating all tables");
     await Promise.all([
         createUserTable(db),
         createFamilyTable(db),
