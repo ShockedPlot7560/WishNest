@@ -370,7 +370,8 @@ export async function create_invitation(req: CreateInvitationRequest, res: Creat
             "WishNest <no-reply@tchallon.fr>",
             email,
             "WishNest - Invitation dans la famille " + family.name,
-            `Bonjour ${email},\n\nUn membre de la famille ${family.name} vous a invité à rejoindre sa famille sur WishNest.\n\nPour accepter l'invitation, créez un compte sur WishNest avec cet email et acceptez d'invitation.\n\nCordialement,\nWishNest`
+            null,
+            `Bonjour ${email},<br><br>Un membre de la famille ${family.name} vous a invité à rejoindre sa famille sur WishNest.<br><br>Pour accepter l'invitation, créez un compte sur <a href="${process.env.VITE_FRONT_URL}/register">WishNest</a> avec cet email et acceptez d'invitation.<br><br>Cordialement,<br>WishNest`
         );
         res.json({success: true});
         return;
