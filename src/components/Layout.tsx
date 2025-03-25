@@ -25,7 +25,7 @@ export default function Layout({children}: { children: React.ReactNode }) {
 
     async function verifyCode() {
         setCodeLoading(true);
-        await axios.post(import.meta.env.VITE_API_BASE_URL + '/users/verify', {
+        await axios.post('/users/verify', {
             code: code,
             uuid: user?.uuid
         }).then((response) => {
