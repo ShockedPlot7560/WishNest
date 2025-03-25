@@ -450,6 +450,7 @@ export async function delete_family_invitation(req: DeleteFamilyInvitationReques
     const invitationUuid: string = req.params.uuid;
 
     await (await db.prepare(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid])).run();
+    await (await db.prepare(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid])).run();
 
     res.json({success: true});
 }
