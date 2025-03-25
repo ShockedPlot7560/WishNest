@@ -124,6 +124,18 @@ async function createSettingsTable(db: Database) {
     `);
 }
 
+async function createExternalEmailInvitation(db: Database) {
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS external_email_invitations (
+            uuid TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            family_uuid TEXT NOT NULL,
+            FOREIGN KEY (family_uuid) REFERENCES families(uuid),
+            UNIQUE(email, family_uuid)
+        )
+    `);
+}
+
 async function createAll(db: Database) {
     logger.info("Creating all tables");
     await Promise.all([
@@ -136,7 +148,8 @@ async function createAll(db: Database) {
         createGroupRequestUserTable(db),
         createGiftTable(db),
         createCommentTable(db),
-        createSettingsTable(db)
+        createSettingsTable(db),
+        createExternalEmailInvitation(db)
     ])
 }
 

@@ -9,6 +9,7 @@ import {
     importUserPublicKey
 } from "../../lib/crypto";
 import {getUserApi} from "../lib/users";
+import { sendMail } from "../lib/email";
 
 export type GetInvitationsUserRequest = AuthenticatedRequest<{
     uuid: string
@@ -35,6 +36,24 @@ export async function get_user_family_invitations(req: GetInvitationsUserRequest
             INNER JOIN families ON families.uuid = user_family_invitations.family_uuid 
         WHERE user_uuid = ?
     `, [req.params.uuid]);
+
+    const user = await (await getUserApi()).getUserByUuid(req.params.uuid);
+    if(!user){
+        res.json({error: 'User not found'}).status(404);
+        return;
+    }
+
+    const external: {
+        familyUuid: string,
+        name: string,
+        invitationUuid: string
+    }[] = await prepareAndAll(`
+        SELECT families.uuid as familyUuid, families.name as name, external_email_invitations.uuid as invitationUuid 
+        FROM external_email_invitations 
+            INNER JOIN families ON families.uuid = external_email_invitations.family_uuid 
+        WHERE email = ?
+    `, [user?.email]);
+    result.push(...external);
 
     res.json(result.map(element => ({
         uuid: element.invitationUuid,
@@ -63,20 +82,35 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
 
     const db = await DB;
 
+    let external = false;
+    let familyUuidToAsk;
     const invitation: {
         uuid: string,
         user_uuid: string,
         family_uuid: string
     } = await prepareAndGet(`SELECT * FROM user_family_invitations WHERE uuid = ?`, [invitationUuid]);
     if(!invitation){
-        res.json({error: 'Invitation not found'}).status(404);
-        return;
+        const externalInvitation: {
+            uuid: string,
+            email: string,
+            family_uuid: string
+        } = await prepareAndGet(`SELECT * FROM external_email_invitations WHERE uuid = ?`, [invitationUuid]);
+
+        if(!externalInvitation){
+            res.json({error: 'Invitation not found'}).status(404);
+            return;
+        }
+
+        familyUuidToAsk = externalInvitation.family_uuid;
+        external = true;
+    }else{
+        familyUuidToAsk = invitation.family_uuid;
     }
 
     const family: {
         uuid: string,
         name: string
-    } = await prepareAndGet(`SELECT * FROM families WHERE uuid = ?`, [invitation.family_uuid]);
+    } = await prepareAndGet(`SELECT * FROM families WHERE uuid = ?`, [familyUuidToAsk]);
     if(!family){
         res.json({error: 'Family not found'}).status(404);
         return;
@@ -163,7 +197,11 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
         }
     }
 
-    await (await db.prepare(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid])).run();
+    if(external){
+        await (await db.prepare(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid])).run();
+    }else{
+        await (await db.prepare(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid])).run();
+    }
 
     res.json({success: true});
 }
@@ -309,20 +347,32 @@ export async function create_invitation(req: CreateInvitationRequest, res: Creat
     const familyUuid: string = req.params.familyUuid;
     const email: string = req.body.email;
 
-    const user: {
-        uuid: string
-    } = await prepareAndGet(`SELECT uuid FROM users WHERE email = ?`, [email]);
-    if (!user) {
-        res.json({error: 'User not found'}).status(404);
-        return;
-    }
-
     const family: {
         uuid: string,
         name: string
     } = await prepareAndGet(`SELECT * FROM families WHERE uuid = ?`, [familyUuid]);
     if (!family) {
         res.json({error: 'Family not found'}).status(404);
+        return;
+    }
+
+    const user: {
+        uuid: string
+    } = await prepareAndGet(`SELECT uuid FROM users WHERE email = ?`, [email]);
+    if (!user) {
+        const actualExternalEmailInvitation: object[] = await prepareAndAll(`SELECT * FROM external_email_invitations WHERE email = ? AND family_uuid = ?`, [email, familyUuid]);
+        if (actualExternalEmailInvitation.length !== 0) {
+            res.json({error: 'User already invited'}).status(400);
+            return;
+        }
+        await (await db.prepare(`INSERT INTO external_email_invitations (uuid, email, family_uuid) VALUES (?, ?, ?)`, [uuid(), email, familyUuid])).run();
+        sendMail(
+            "WishNest <no-reply@tchallon.fr>",
+            email,
+            "WishNest - Invitation dans la famille " + family.name,
+            `Bonjour ${email},\n\nUn membre de la famille ${family.name} vous a invité à rejoindre sa famille sur WishNest.\n\nPour accepter l'invitation, créez un compte sur WishNest avec cet email et acceptez d'invitation.\n\nCordialement,\nWishNest`
+        );
+        res.json({success: true});
         return;
     }
 
@@ -350,8 +400,9 @@ export type GetFamilyInvitationsRequest = AuthenticatedRequest<{
 
 export type GetFamilyInvitationsResponse = BaseResponse<{
     uuid: string,
-    user_uuid: string,
-    email: string
+    user_uuid: string | null,
+    email: string,
+    external: boolean
 }[]>;
 
 export async function get_family_invitations(req: GetFamilyInvitationsRequest, res: GetFamilyInvitationsResponse) {
@@ -359,7 +410,7 @@ export async function get_family_invitations(req: GetFamilyInvitationsRequest, r
 
     const invitations: {
         uuid: string,
-        user_uuid: string,
+        user_uuid: string | null,
         email: string
     }[] = await prepareAndAll(`
         SELECT user_family_invitations.*, users.email as email 
@@ -367,10 +418,21 @@ export async function get_family_invitations(req: GetFamilyInvitationsRequest, r
                 INNER JOIN users ON users.uuid = user_family_invitations.user_uuid 
             WHERE family_uuid = ?`, [familyUuid]);
 
+    const externalInvitations: {
+        uuid: string,
+        email: string
+    }[] = await prepareAndAll(`SELECT * FROM external_email_invitations WHERE family_uuid = ?`, [familyUuid]);
+    invitations.push(...externalInvitations.map(element => ({
+        uuid: element.uuid,
+        user_uuid: null,
+        email: element.email
+    })));
+
     res.json(invitations.map(element => ({
         uuid: element.uuid,
         user_uuid: element.user_uuid,
-        email: element.email
+        email: element.email,
+        external: element.user_uuid == null
     })));
 }
 

@@ -15,6 +15,7 @@ export default function InviteFamilyButton(props: {familyId: string, onInvite: (
     const [open, setOpen] = useState(false);
     const [email, setEmail] = useState('');
     const [error, setError] = useState<string|null>('');
+    const [loading, setLoading] = useState(false);
 
     const handleClose = () => {
         setOpen(false);
@@ -22,6 +23,7 @@ export default function InviteFamilyButton(props: {familyId: string, onInvite: (
 
     const onSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+        setLoading(true);
 
         await axios.post(import.meta.env.VITE_API_BASE_URL + "/families/"+props.familyId+"/invitations", {
             email: email
@@ -29,9 +31,12 @@ export default function InviteFamilyButton(props: {familyId: string, onInvite: (
             if(response.data.success){
                 handleClose();
                 props.onInvite();
+                setEmail('');
             }else{
                 setError(response.data.error);
             }
+        }).finally(() => {
+            setLoading(false);
         });
     }
 
@@ -70,13 +75,14 @@ export default function InviteFamilyButton(props: {familyId: string, onInvite: (
                         name="email"
                         placeholder="Email"
                         type="email"
+                        value={email}
                         fullWidth
                         onChange={(event) => setEmail(event.target.value)}
                     />
                 </DialogContent>
                 <DialogActions sx={{ pb: 3, px: 3 }}>
                     <Button onClick={handleClose}>Annuler</Button>
-                    <Button variant="contained" type="submit">
+                    <Button variant="contained" type="submit" disabled={loading}>
                         Continuer
                     </Button>
                 </DialogActions>
