@@ -170,9 +170,9 @@ async function v1Upgrade(db: Database) {
     `);
     
     await db.exec(`
-        UPDATE settings
-        SET value = '1'
-        WHERE key = 'version'
+        INSERT INTO settings (key, value)
+        VALUES ('version', '1')
+        ON CONFLICT(key) DO UPDATE SET value = '1'
     `);
 }
 
