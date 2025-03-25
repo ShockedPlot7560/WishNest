@@ -5,19 +5,47 @@ import SideMenu from './SideMenu';
 import MainGrid from "./MainGrid.tsx";
 import axios from "axios";
 import {useState} from "react";
-import {Card, CardContent, CssVarsTheme} from "@mui/material";
+import {Alert, Button, Card, CardContent, CssVarsTheme, TextField} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import AppNavbar from './AppNavbar.tsx';
+import { useAuth } from '../provider/AuthProvider.tsx';
 
 export default function Layout({children}: { children: React.ReactNode }) {
-    const [errors, setErrors] = useState<string[]>([
-    ]);
+    const [errors, setErrors] = useState<string[]>([]);
+    const [code, setCode] = useState<string>('');
+    const [codeLoading, setCodeLoading] = useState<boolean>(false);
+    const { user, setUser } = useAuth();
 
     function addError(error: string) {
         setErrors([...errors, error]);
         setTimeout(() => {
             setErrors(errors.filter(e => e !== error));
         }, 5000);
+    }
+
+    async function verifyCode() {
+        setCodeLoading(true);
+        await axios.post(import.meta.env.VITE_API_BASE_URL + '/users/verify', {
+            code: code,
+            uuid: user?.uuid
+        }).then((response) => {
+            if(response.data.success){
+                setUser(user ? { 
+                    ...user, 
+                    verified: 1 
+                } : null);
+            }else{
+                addError("Code de vérification invalide");
+            }
+        }).catch((error) => {
+            if(error.status){
+                addError("Code de vérification invalide");
+            }else{
+                addError("Une erreur est survenue lors de la vérification du code");
+            }
+        }).finally(() => {
+            setCodeLoading(false);
+        });
     }
 
     axios.interceptors.response.use(
@@ -88,6 +116,40 @@ export default function Layout({children}: { children: React.ReactNode }) {
                     </Stack>
                     {/*<Header />
                     <MainGrid />*/}
+                    {user?.verified != 1 && <Box sx={{
+                        width: '100%',
+                    }}>
+                        <Alert severity="error" color='error' icon={false}>
+                            Vous devez vérifier votre compte. Récupérer le code envoyé par mail et le saisir ci-dessous.<br/>
+                            Si vous ne le voyez pas, vérifiez vos spams ou contactez le support.
+                            <Box component="form" noValidate autoComplete="off">
+                                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                                    <TextField 
+                                        id="outlined-basic"
+                                        label="Code de vérification"
+                                        variant="outlined"
+                                        sx={{ width: '100%' }}
+                                        onChange={(e) => {
+                                            setCode(e.target.value);
+                                        }}
+                                    />
+                                    <Box sx={{ ml: 2 }}>
+                                        <Button 
+                                            variant="contained"
+                                            color="primary"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                verifyCode();
+                                            }}
+                                            disabled={codeLoading}
+                                        >
+                                            Vérifier
+                                        </Button>
+                                    </Box>
+                                </Box>
+                            </Box>
+                        </Alert>
+                    </Box>}
                     <MainGrid>{children}</MainGrid>
                     <Box
                         component="footer"

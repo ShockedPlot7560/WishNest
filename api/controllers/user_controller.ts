@@ -4,6 +4,9 @@ import {getUserApi} from "../lib/users";
 import {checkPassword} from "../../lib/login";
 import {AuthenticatedRequest, BaseResponse} from "./controllers";
 import {encodeJwt} from "../lib/security";
+import { sendMail } from "../lib/email";
+import { uuid } from "uuidv4";
+import { logger } from "../lib/logger";
 
 const userApi = getUserApi();
 
@@ -67,6 +70,7 @@ export type CheckUserResponse = BaseResponse<{
     success: boolean,
     uuid: string,
     email: string,
+    verified: number,
     derivedKey: string,
     jwt: string
 }>;
@@ -86,6 +90,12 @@ export async function check_user(req: CheckUserRequest, res: CheckUserResponse){
             return;
         }
 
+        if(user.verified == 0 && user.verification_code === null){
+            await (await getUserApi()).resetVerificationCode(
+                user.uuid
+            );
+        }
+
         if(!await checkPassword(password, user.password)){
             res.status(401);
             res.json({error: 'Login failed'});
@@ -94,6 +104,7 @@ export async function check_user(req: CheckUserRequest, res: CheckUserResponse){
                 success: true,
                 uuid: user.uuid,
                 email: user.email,
+                verified: user.verified,
                 derivedKey: await derivedKeyToB64(user.derived_key),
                 jwt: await encodeJwt({
                     uuid: user.uuid,
@@ -105,4 +116,46 @@ export async function check_user(req: CheckUserRequest, res: CheckUserResponse){
     } catch {
         res.status(401).json({error: 'Login failed, an error occurred'});
     }
+}
+
+export type VerifyUserRequest = Request<object, object, {
+    code: string,
+    uuid: string
+}>
+
+export type VerifyUserResponse = BaseResponse<{
+    success: boolean,
+    uuid: string,
+    email: string
+}>
+
+export async function verify_user(req: VerifyUserRequest, res: VerifyUserResponse) {
+    const {code, uuid} = req.body;
+
+    if(!code || !uuid){
+        res.status(400).json({error: "Bad parameter"});
+        return;
+    }
+
+    const userApi = await getUserApi();
+    const user = await userApi.getUserByUuid(uuid);
+    if(user === null){
+        res.status(404).json({error: "User not found"});
+        return;
+    }
+
+    logger.info(user.verification_code + code);
+
+    if(user.verification_code !== code){
+        res.status(400).json({error: "Invalid code"});
+        return;
+    }
+
+    await (await getUserApi()).verifyUser(user.uuid);
+
+    res.json({
+        success: true,
+        uuid: user.uuid,
+        email: user.email
+    });
 }

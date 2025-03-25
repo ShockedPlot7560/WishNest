@@ -1,6 +1,6 @@
 import {open} from "sqlite";
 import sqlite3 from "sqlite3";
-import {createAll} from "../schema";
+import {createAll, upgradeAll} from "../schema";
 import { logger } from "./logger";
 
 export const DB = open({
@@ -8,6 +8,7 @@ export const DB = open({
     driver: sqlite3.Database
 }).then(async (db) => {
     await createAll(db);
+    await upgradeAll(db);
 
     return db;
 })

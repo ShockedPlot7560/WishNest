@@ -115,6 +115,15 @@ async function createCommentTable(db: Database) {
     `);
 }
 
+async function createSettingsTable(db: Database) {
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    `);
+}
+
 async function createAll(db: Database) {
     logger.info("Creating all tables");
     await Promise.all([
@@ -126,8 +135,37 @@ async function createAll(db: Database) {
         createGroupUserTable(db),
         createGroupRequestUserTable(db),
         createGiftTable(db),
-        createCommentTable(db)
+        createCommentTable(db),
+        createSettingsTable(db)
     ])
 }
 
-export { createAll };
+async function v1Upgrade(db: Database) {
+    const versionRow = await db.get(`SELECT value FROM settings WHERE key = 'version'`);
+    if (versionRow && versionRow.value >= 1) {
+        return;
+    }
+    logger.info("Upgrading database to v1");
+    await db.exec(`
+        ALTER TABLE users
+        ADD COLUMN verified INTEGER DEFAULT 0
+    `);
+
+    await db.exec(`
+        ALTER TABLE users
+        ADD COLUMN verification_code TEXT
+    `);
+    
+    await db.exec(`
+        UPDATE settings
+        SET value = '1'
+        WHERE key = 'version'
+    `);
+}
+
+async function upgradeAll(db: Database) {
+    logger.info("Upgrading database");
+    await v1Upgrade(db);
+}
+
+export { createAll, upgradeAll };
