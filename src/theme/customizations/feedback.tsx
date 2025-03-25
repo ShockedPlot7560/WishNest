@@ -16,6 +16,23 @@ export const feedbackCustomizations: Components<CssVarsTheme> = {
                     backgroundColor: `${alpha(orange[900], 0.5)}`,
                     border: `1px solid ${alpha(orange[800], 0.5)}`,
                 }),
+                variants: [{
+                    props: {
+                        severity: 'error',
+                    },
+                    style: {
+                        backgroundColor: (theme.vars || theme).palette.error.main,
+                        color: (theme.vars || theme).palette.error.contrastText,
+                        border: `1px solid ${alpha(orange[300], 0.5)}`,
+                        '& .MuiAlert-icon': {
+                            color: (theme.vars || theme).palette.error.contrastText,
+                        },
+                        ...theme.applyStyles('dark', {
+                            backgroundColor: (theme.vars || theme).palette.error.dark,
+                            border: `1px solid ${alpha(orange[800], 0.5)}`,
+                        }),
+                    },
+                }]
             }),
         },
     },

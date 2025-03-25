@@ -3,6 +3,7 @@ import { PublicKey, UserPrivateKey } from "../../lib/types";
 import { GiftPrivateData, GroupPrivateData } from "../interfaces";
 import { DB } from "./db";
 import AsyncLock from "async-lock";
+import { logger } from "./logger";
 
 export class PrivateDataError extends Error {
 
@@ -18,6 +19,8 @@ export async function editPrivateData(
 ) {
     const db = await DB;
     const lock = new AsyncLock();
+
+    logger.debug(`Editing private data for family ${familyUuid} targeting ${targetUuid} gift ${giftUuid} for user ${actualUserUuid}`);
 
     await lock.acquire(
         familyUuid + targetUuid + giftUuid,

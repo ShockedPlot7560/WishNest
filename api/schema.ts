@@ -1,4 +1,5 @@
 import { Database } from "sqlite";
+import { logger } from "./lib/logger";
 
 async function createUserTable(db: Database) {
     await db.exec(`
@@ -114,7 +115,29 @@ async function createCommentTable(db: Database) {
     `);
 }
 
+async function createSettingsTable(db: Database) {
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        )
+    `);
+}
+
+async function createExternalEmailInvitation(db: Database) {
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS external_email_invitations (
+            uuid TEXT PRIMARY KEY,
+            email TEXT NOT NULL,
+            family_uuid TEXT NOT NULL,
+            FOREIGN KEY (family_uuid) REFERENCES families(uuid),
+            UNIQUE(email, family_uuid)
+        )
+    `);
+}
+
 async function createAll(db: Database) {
+    logger.info("Creating all tables");
     await Promise.all([
         createUserTable(db),
         createFamilyTable(db),
@@ -124,8 +147,38 @@ async function createAll(db: Database) {
         createGroupUserTable(db),
         createGroupRequestUserTable(db),
         createGiftTable(db),
-        createCommentTable(db)
+        createCommentTable(db),
+        createSettingsTable(db),
+        createExternalEmailInvitation(db)
     ])
 }
 
-export { createAll };
+async function v1Upgrade(db: Database) {
+    const versionRow = await db.get(`SELECT value FROM settings WHERE key = 'version'`);
+    if (versionRow && versionRow.value >= 1) {
+        return;
+    }
+    logger.info("Upgrading database to v1");
+    await db.exec(`
+        ALTER TABLE users
+        ADD COLUMN verified INTEGER DEFAULT 0
+    `);
+
+    await db.exec(`
+        ALTER TABLE users
+        ADD COLUMN verification_code TEXT
+    `);
+    
+    await db.exec(`
+        INSERT INTO settings (key, value)
+        VALUES ('version', '1')
+        ON CONFLICT(key) DO UPDATE SET value = '1'
+    `);
+}
+
+async function upgradeAll(db: Database) {
+    logger.info("Upgrading database");
+    await v1Upgrade(db);
+}
+
+export { createAll, upgradeAll };

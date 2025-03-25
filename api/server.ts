@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import {add_user, check_user, get_users} from "./controllers/user_controller";
+import {add_user, check_user, get_users, verify_user} from "./controllers/user_controller";
 import {
     accept_gift,
     add_family,
@@ -24,18 +24,23 @@ import {
 } from "./controllers/invitations_controller";
 import {authenticated} from "./controllers/controllers";
 import * as dotenv from 'dotenv'
+import { logger } from './lib/logger';
+import { uuid } from 'uuidv4';
 
 const app = express();
 const PORT = 3000;
 
-dotenv.config()
+dotenv.config();
+dotenv.config({ path: `.env.local`, override: true });
 
 // Middleware
 app.use(cors({ origin: process.env.VITE_FRONT_URL })); // Autorise toutes les requêtes cross-origin
 app.use(express.json()); // Permet de lire le JSON dans les requêtes POST
 app.use((req, res, next) => {
-    console.log(`${req.method} ${req.url}`);
+    const reqId = uuid();
+    logger.info(`> [${reqId}] ${req.method} ${req.url} `);
     next();
+    logger.info(`< [${reqId}] ${res.statusCode} ${res.statusMessage}`);
 });
 const apiPrefix = '/api';
 app.use(apiPrefix, authenticated);
@@ -110,8 +115,11 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
     // Suppression d'un cadeau
     app.delete(apiPrefix + '/family/:familyUuid/member/:userUuid/gift/:giftUuid', delete_gift);
 
+    // vérification utilisateur
+    app.post(apiPrefix + '/users/verify', verify_user);
+
     // Démarrer le serveur
     app.listen(PORT, () => {
-        console.log(`API running on http://localhost:${PORT}`);
+        logger.info(`API running on http://localhost:${PORT}`);
     });
 })();

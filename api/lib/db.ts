@@ -1,12 +1,13 @@
 import {open} from "sqlite";
 import sqlite3 from "sqlite3";
-import {createAll} from "../schema";
+import {createAll, upgradeAll} from "../schema";
 
 export const DB = open({
     filename: 'api/data/global.db',
     driver: sqlite3.Database
 }).then(async (db) => {
     await createAll(db);
+    await upgradeAll(db);
 
     return db;
 })
