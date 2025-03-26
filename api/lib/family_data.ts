@@ -1,9 +1,8 @@
-import { decryptGroupUserPrivateKey, decryptGroupUserPublicKey, decryptPrivateData, encryptPrivateData } from "../../lib/crypto";
-import { PublicKey, UserPrivateKey } from "../../lib/types";
 import { GiftPrivateData, GroupPrivateData } from "../interfaces";
-import { DB } from "./db";
+import {prepareAndGet, prepareAndRun} from "./db";
 import AsyncLock from "async-lock";
 import { logger } from "./logger";
+import { GroupUserPublicKey, UserPrivateKey } from "./crypto";
 
 export class PrivateDataError extends Error {
 
@@ -17,7 +16,6 @@ export async function editPrivateData(
     giftUuid: string,
     callback: (GiftPrivateData) => GiftPrivateData
 ) {
-    const db = await DB;
     const lock = new AsyncLock();
 
     logger.debug(`Editing private data for family ${familyUuid} targeting ${targetUuid} gift ${giftUuid} for user ${actualUserUuid}`);
@@ -27,27 +25,27 @@ export async function editPrivateData(
         async () => {
             const encryptedPrivateData: {
                 private_data: string
-            } = await (await db.prepare(`
+            } | undefined = await prepareAndGet(`
                 SELECT groups.private_data FROM groups
                     WHERE groups.target_uuid = ? AND groups.family_uuid = ?
-            `, [targetUuid, familyUuid])).get();
+            `, [targetUuid, familyUuid]);
         
             const encryptedPrivateKey: {
                 encryptedPrivateKey: string,
                 publicKey: string
-            } = await (await db.prepare(`
+            } | undefined = await prepareAndGet(`
                 SELECT group_user.private_key as encryptedPrivateKey, group_user.public_key as publicKey
                 FROM group_user
                     INNER JOIN groups ON groups.uuid = group_user.group_uuid
                 WHERE group_user.user_uuid = ? AND groups.family_uuid = ? AND groups.target_uuid = ?
-            `, [actualUserUuid, familyUuid, targetUuid])).get();
+            `, [actualUserUuid, familyUuid, targetUuid]);
         
             let privateData: null | GroupPrivateData = null;
-            let publicKey: PublicKey | null = null;
+            let publicKey: GroupUserPublicKey | null = null;
             if(encryptedPrivateKey && encryptedPrivateData){
-                const privateKey = await decryptGroupUserPrivateKey(encryptedPrivateKey.encryptedPrivateKey, userPrivateKey);
-                publicKey = await decryptGroupUserPublicKey(encryptedPrivateKey.publicKey, userPrivateKey);
-                privateData = JSON.parse(await decryptPrivateData(encryptedPrivateData.private_data, privateKey));
+                const privateKey = await userPrivateKey.decryptGroupUserPrivateKey(encryptedPrivateKey.encryptedPrivateKey);
+                publicKey = await userPrivateKey.decryptGroupUserPublicKey(encryptedPrivateKey.publicKey);
+                privateData = JSON.parse(await privateKey.decode(encryptedPrivateData.private_data));
             }
         
             if(publicKey === null){
@@ -67,12 +65,11 @@ export async function editPrivateData(
         
             privateData[giftUuid] = callback(privateData[giftUuid]);
         
-            const newPrivateData = await encryptPrivateData(JSON.stringify(privateData), publicKey);
+            const newPrivateData = await publicKey.encode(JSON.stringify(privateData));
         
-            await (await db.prepare(`
+            await prepareAndRun(`
                 UPDATE groups SET private_data = ? WHERE target_uuid = ? AND family_uuid = ?
-            `, [newPrivateData, targetUuid, familyUuid])).
-            run();
+            `, [newPrivateData, targetUuid, familyUuid]);
         }
     )
 }

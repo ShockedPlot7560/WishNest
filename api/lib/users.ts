@@ -1,18 +1,15 @@
 import { Database } from "sqlite";
 import { sendMail } from "./email.ts";
 import {
-    decryptPrivateKeyUser,
-    deriveKey,
-    encryptPrivateKeyUser,
-    exportUserPublicKey,
     generateSalt,
     generateUserKeyPair,
-    importUserPublicKey
-} from "../../lib/crypto";
+    DerivedKey,
+    UserPublicKey,
+    UserPrivateKey
+} from "./crypto.ts";
 import { uuid } from "uuidv4";
-import {checkPassword, hashPassword} from "../../lib/login";
-import {DerivedKey, UserPrivateKey, UserPublicKey} from "../../lib/types";
-import {DB} from "./db.ts";
+import {checkPassword, hashPassword} from "./login.ts";
+import {DB, prepareAndAll, prepareAndGet, prepareAndRun} from "./db.ts";
 import { logger } from "./logger.ts";
 
 export interface UnloggedUser {
@@ -53,13 +50,13 @@ export class UserApi {
     async getUsers(): Promise<Partial<UnloggedUser>[]> {
         const result: Partial<UnloggedUser>[] = [];
 
-        for (const element of (await (await this.db.prepare("SELECT * FROM users")).all())) {
+        for (const element of (await prepareAndAll("SELECT * FROM users"))) {
             result.push({
                 uuid: element.uuid,
                 email: element.email,
                 password: element.password,
                 salt: element.salt,
-                public_key: await importUserPublicKey(element.public_key)
+                public_key: await UserPublicKey.import(element.public_key)
             });
         }
 
@@ -67,7 +64,7 @@ export class UserApi {
     } 
 
     async getUserByEmail<T extends (string|null)>(email: string, password: T = null as T): Promise<null | (T extends null ? UnloggedUser : LoggedUser)>{
-        const result = await (await this.db.prepare("SELECT * FROM users WHERE email = ?")).get(email);
+        const result = await prepareAndGet("SELECT * FROM users WHERE email = ?", [email]);
         if(!result) return null;
 
         const baseUser: UnloggedUser = {
@@ -75,7 +72,7 @@ export class UserApi {
             email: result.email,
             password: result.password,
             salt: result.salt,
-            public_key: await importUserPublicKey(result.public_key),
+            public_key: await UserPublicKey.import(result.public_key),
             verified: result.verified,
             verification_code: result.verification_code
         };
@@ -85,17 +82,17 @@ export class UserApi {
             if((await checkPassword(password, baseUser.password)) === false) {
                 return null;
             }
-            const derivedKey = await deriveKey(password, baseUser.salt);
+            const derivedKey = await DerivedKey.derive(password, baseUser.salt);
             return {
                 ...baseUser,
                 derived_key: derivedKey,
-                private_key: await decryptPrivateKeyUser(result.private_key, derivedKey)
+                private_key: await UserPrivateKey.decryptWithDerived(result.private_key, derivedKey)
             } as LoggedUser;
         }
     }
 
     async getUserByUuid(uuid: string): Promise<null | UnloggedUser>{
-        const result = await (await this.db.prepare("SELECT * FROM users WHERE uuid = ?")).get(uuid);
+        const result = await prepareAndGet("SELECT * FROM users WHERE uuid = ?", [uuid]);
         if(!result) return null;
 
         return {
@@ -105,25 +102,24 @@ export class UserApi {
             salt: result.salt,
             verified: result.verified,
             verification_code: result.verification_code,
-            public_key: await importUserPublicKey(result.public_key)
+            public_key: await UserPublicKey.import(result.public_key)
         };
     }
 
     async createUser(email: string, password: string) : Promise<Partial<UnloggedUser>> {
         logger.debug("Creating user with email: " + email);
         const userUuid: string = uuid();
-        const userKeyPair: CryptoKeyPair = await generateUserKeyPair();
+        const userKeyPair = await generateUserKeyPair();
         const userSalt = await generateSalt();
-        const userDerivedKey: CryptoKey = await deriveKey(password, userSalt);
-        const encryptedPrivateKey = await encryptPrivateKeyUser(userKeyPair.privateKey, userDerivedKey);
+        const userDerivedKey = await DerivedKey.derive(password, userSalt);
+        const encryptedPrivateKey = await userKeyPair.privateKey.encryptWithDerived(userDerivedKey);
         const hashedPassword = await hashPassword(password);
-        const prepare = await this.db.prepare(`INSERT INTO users (
+        await prepareAndRun(`INSERT INTO users (
             uuid, email, password, salt, private_key, public_key, verified, verification_code
         ) VALUES (?, ?, ?, ?, ?, ?, 0, NULL)`, [
             userUuid, email, hashedPassword, userSalt, 
-            encryptedPrivateKey, await exportUserPublicKey(userKeyPair.publicKey)
+            encryptedPrivateKey, await userKeyPair.publicKey.export()
         ]);
-        await prepare.run();
 
         await this.resetVerificationCode(userUuid);
 
@@ -138,17 +134,17 @@ export class UserApi {
     }
 
     async getPrivateKeyForUuid(uuid: string, derivedKey: DerivedKey) : Promise<null|UserPrivateKey> {
-        const encryptedUserPrivateKey = (await (await this.db.prepare(`SELECT private_key FROM users WHERE uuid = ?`, [uuid])).get());
+        const encryptedUserPrivateKey = await prepareAndGet(`SELECT private_key FROM users WHERE uuid = ?`, [uuid]);
         if(!encryptedUserPrivateKey) return null;
 
-        return await decryptPrivateKeyUser(encryptedUserPrivateKey.private_key, derivedKey);
+        return await UserPrivateKey.decryptWithDerived(encryptedUserPrivateKey.private_key, derivedKey);
     }
 
     async resetVerificationCode(userUuid: string) : Promise<void> {
         const verification_code = uuid();
         const user = await this.getUserByUuid(userUuid);
         if(!user) throw new Error("User not found");
-        await (await this.db.prepare(`UPDATE users SET verification_code = ? WHERE uuid = ?`, [verification_code, userUuid])).run();
+        await prepareAndRun(`UPDATE users SET verification_code = ? WHERE uuid = ?`, [verification_code, userUuid]);
 
         await sendMail(
             "WishNest <no-reply@tchallon.fr>",
@@ -166,7 +162,7 @@ export class UserApi {
         const user = await this.getUserByUuid(uuid);
         if(!user) throw new Error("User not found");
 
-        await (await this.db.prepare(`UPDATE users SET verified = 1, verification_code = NULL WHERE uuid = ?`, [uuid])).run();
+        await prepareAndRun(`UPDATE users SET verified = 1, verification_code = NULL WHERE uuid = ?`, [uuid]);
     }
         
 }

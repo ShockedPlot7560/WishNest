@@ -1,15 +1,9 @@
 import {AuthenticatedRequest, BaseResponse} from "./controllers";
-import {DB, prepareAndAll, prepareAndGet} from "../lib/db";
+import {prepareAndAll, prepareAndGet, prepareAndRun} from "../lib/db";
 import {uuid} from "uuidv4";
-import {
-    decryptGroupUserPrivateKey, decryptGroupUserPublicKey,
-    encryptGroupUserPrivateKey, encryptGroupUserPublicKey,
-    encryptPrivateData,
-    generatePrimaryKeyPair,
-    importUserPublicKey
-} from "../../lib/crypto";
 import {getUserApi} from "../lib/users";
 import { sendMail } from "../lib/email";
+import {generateGroupUserKeyPair, UserPublicKey} from "../lib/crypto";
 
 export type GetInvitationsUserRequest = AuthenticatedRequest<{
     uuid: string
@@ -80,8 +74,6 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
     const invitationUuid: string = req.params.invitationUuid;
     const userName: string = req.body.userName;
 
-    const db = await DB;
-
     let external = false;
     let familyUuidToAsk;
     const invitation: {
@@ -127,7 +119,7 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
         res.json({error: 'User not found'}).status(404);
         return;
     }
-    const loggedUserPubKey = await importUserPublicKey(user.public_key);
+    const loggedUserPubKey = await UserPublicKey.import(user.public_key);
 
     const familyUsers: {
         user_uuid: string,
@@ -141,30 +133,30 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
 
     // on créer le nouveau groupe pour le nouveau membre
     const newGroupUuid = uuid();
-    const newGroupPrivateKeyPair = await generatePrimaryKeyPair();
-    const newGroupEncryptedData = await encryptPrivateData(JSON.stringify({}), newGroupPrivateKeyPair.publicKey);
+    const newGroupPrivateKeyPair = await generateGroupUserKeyPair();
+    const newGroupEncryptedData = await newGroupPrivateKeyPair.publicKey.encode(JSON.stringify({}));
 
     // On lie l'utilisateur à la famille
-    await (await db.prepare(`INSERT INTO user_family (
+    await prepareAndRun(`INSERT INTO user_family (
             user_uuid, family_uuid, name
-        ) VALUES (?, ?, ?)`, [userUuid, familyUuid, userName])).run();
+        ) VALUES (?, ?, ?)`, [userUuid, familyUuid, userName]);
 
     // On créer le nouveau groupe
-    await (await db.prepare(`INSERT INTO groups (
+    await prepareAndRun(`INSERT INTO groups (
             uuid, target_uuid, family_uuid, private_data
-        ) VALUES (?, ?, ?, ?)`, [newGroupUuid, userUuid, familyUuid, newGroupEncryptedData])).run();
+        ) VALUES (?, ?, ?, ?)`, [newGroupUuid, userUuid, familyUuid, newGroupEncryptedData]);
 
     for (const familyUser of familyUsers) {
         // on ajoute tout les membres de la famille a ce nouveau groupe
-        const userPubKey = await importUserPublicKey(familyUser.public_key);
-        const userGroupPrivateKey = await encryptGroupUserPrivateKey(newGroupPrivateKeyPair.privateKey, userPubKey)
-        const userGroupPublicKey = await encryptGroupUserPublicKey(newGroupPrivateKeyPair.publicKey, userPubKey);
+        const userPubKey = await UserPublicKey.import(familyUser.public_key);
+        const userGroupPrivateKey = await newGroupPrivateKeyPair.privateKey.encrypt(userPubKey);
+        const userGroupPublicKey = await newGroupPrivateKeyPair.publicKey.encrypt(userPubKey);
 
-        await (await db.prepare(`INSERT INTO group_user (
+        await prepareAndRun(`INSERT INTO group_user (
                     group_uuid, user_uuid, private_key, public_key
                 ) VALUES (?, ?, ?, ?)`, [
             newGroupUuid, familyUser.user_uuid, userGroupPrivateKey, userGroupPublicKey
-        ])).run();
+        ]);
 
         // On s'invite dans tout les autres groupes
         const familyUserGroupUuid: {
@@ -174,33 +166,33 @@ export async function accept_family_invitation(req: AcceptFamilyInvitationReques
         if(familyUserGroupUuid == null){
             // groupe inexistant, on le créer
             const familyUserNewGroupUuid = uuid();
-            const familyUserNewGroupPrivateKeyPair = await generatePrimaryKeyPair();
-            const familyUserNewGroupEncryptedData = await encryptPrivateData(JSON.stringify({}), familyUserNewGroupPrivateKeyPair.publicKey);
+            const familyUserNewGroupPrivateKeyPair = await generateGroupUserKeyPair();
+            const familyUserNewGroupEncryptedData = await familyUserNewGroupPrivateKeyPair.publicKey.encode(JSON.stringify({}));
 
-            await (await db.prepare(`INSERT INTO groups (
+            await prepareAndRun(`INSERT INTO groups (
                     uuid, target_uuid, family_uuid, private_data
-                ) VALUES (?, ?, ?, ?)`, [familyUserNewGroupUuid, familyUser.user_uuid, familyUuid, familyUserNewGroupEncryptedData])).run();
+                ) VALUES (?, ?, ?, ?)`, [familyUserNewGroupUuid, familyUser.user_uuid, familyUuid, familyUserNewGroupEncryptedData]);
 
-            const encryptedPrivateKey: string = await encryptGroupUserPrivateKey(familyUserNewGroupPrivateKeyPair.privateKey, loggedUserPubKey);
-            const encryptedPublicKey: string = await encryptGroupUserPublicKey(familyUserNewGroupPrivateKeyPair.publicKey, loggedUserPubKey);
+            const encryptedPrivateKey: string = await familyUserNewGroupPrivateKeyPair.privateKey.encrypt(loggedUserPubKey);
+            const encryptedPublicKey: string = await familyUserNewGroupPrivateKeyPair.publicKey.encrypt(loggedUserPubKey);
 
-            await (await db.prepare(`INSERT INTO group_user (
+            await prepareAndRun(`INSERT INTO group_user (
                     group_uuid, user_uuid, private_key, public_key
                 ) VALUES (?, ?, ?, ?)`, [
                 familyUserNewGroupUuid, userUuid, encryptedPrivateKey, encryptedPublicKey
-            ])).run();
+            ]);
         } else {
             // groupe existant, on demande l'accès
-            await (await db.prepare(`INSERT INTO group_request_user (
+            await prepareAndRun(`INSERT INTO group_request_user (
                      group_uuid, user_uuid           
-                ) VALUES (?, ?)`, [familyUserGroupUuid.uuid, userUuid])).run();
+                ) VALUES (?, ?)`, [familyUserGroupUuid.uuid, userUuid]);
         }
     }
 
     if(external){
-        await (await db.prepare(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid])).run();
+        await prepareAndRun(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid]);
     }else{
-        await (await db.prepare(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid])).run();
+        await prepareAndRun(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid]);
     }
 
     res.json({success: true});
@@ -260,8 +252,6 @@ export async function accept_user_group_request(req: AcceptUserGroupRequestReque
     const groupUuid: string = req.params.groupUuid;
     const userUuid: string = req.params.userUuid;
 
-    const db = await DB;
-
     const request: {
         group_uuid: string,
         user_uuid: string
@@ -308,25 +298,19 @@ export async function accept_user_group_request(req: AcceptUserGroupRequestReque
     }
 
     // TODO: lock
-    const privateKeyGroup = await decryptGroupUserPrivateKey(
-        currentUserGroup.private_key,
-        userPrivateKey
-    );
-    const publicKeyGroup = await decryptGroupUserPublicKey(
-        currentUserGroup.public_key,
-        userPrivateKey
-    );
+    const privateKeyGroup = await userPrivateKey.decryptGroupUserPrivateKey(currentUserGroup.private_key);
+    const publicKeyGroup = await userPrivateKey.decryptGroupUserPublicKey(currentUserGroup.public_key);
 
-    const encryptedPrivateKey: string = await encryptGroupUserPrivateKey(privateKeyGroup, user.public_key);
-    const encryptedPublicKey: string = await encryptGroupUserPublicKey(publicKeyGroup, user.public_key);
+    const encryptedPrivateKey: string = await privateKeyGroup.encrypt(user.public_key);
+    const encryptedPublicKey: string = await publicKeyGroup.encrypt(user.public_key);
 
-    await (await db.prepare(`INSERT INTO group_user (
+    await prepareAndRun(`INSERT INTO group_user (
             group_uuid, user_uuid, private_key, public_key
         ) VALUES (?, ?, ?, ?)`, [
         groupUuid, userUuid, encryptedPrivateKey, encryptedPublicKey
-    ])).run();
+    ]);
 
-    await (await db.prepare(`DELETE FROM group_request_user WHERE group_uuid = ? AND user_uuid = ?`, [groupUuid, userUuid])).run();
+    await prepareAndRun(`DELETE FROM group_request_user WHERE group_uuid = ? AND user_uuid = ?`, [groupUuid, userUuid]);
 
     res.json({success: true});
 }
@@ -342,8 +326,6 @@ export type CreateInvitationResponse = BaseResponse<{
 }>;
 
 export async function create_invitation(req: CreateInvitationRequest, res: CreateInvitationResponse) {
-    const db = await DB;
-
     const familyUuid: string = req.params.familyUuid;
     const email: string = req.body.email;
 
@@ -365,7 +347,7 @@ export async function create_invitation(req: CreateInvitationRequest, res: Creat
             res.json({error: 'User already invited'}).status(400);
             return;
         }
-        await (await db.prepare(`INSERT INTO external_email_invitations (uuid, email, family_uuid) VALUES (?, ?, ?)`, [uuid(), email, familyUuid])).run();
+        await prepareAndRun(`INSERT INTO external_email_invitations (uuid, email, family_uuid) VALUES (?, ?, ?)`, [uuid(), email, familyUuid]);
         sendMail(
             "WishNest <no-reply@tchallon.fr>",
             email,
@@ -388,9 +370,9 @@ export async function create_invitation(req: CreateInvitationRequest, res: Creat
 
     const invitationUuid = uuid();
 
-    await (await db.prepare(`INSERT INTO user_family_invitations (
+    await prepareAndRun(`INSERT INTO user_family_invitations (
             uuid, user_uuid, family_uuid
-        ) VALUES (?, ?, ?)`, [invitationUuid, user.uuid, familyUuid])).run();
+        ) VALUES (?, ?, ?)`, [invitationUuid, user.uuid, familyUuid]);
 
     res.json({success: true});
 }
@@ -446,12 +428,10 @@ export type DeleteFamilyInvitationResponse = BaseResponse<{
 }>;
 
 export async function delete_family_invitation(req: DeleteFamilyInvitationRequest, res: DeleteFamilyInvitationResponse) {
-    const db = await DB;
-
     const invitationUuid: string = req.params.uuid;
 
-    await (await db.prepare(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid])).run();
-    await (await db.prepare(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid])).run();
+    await prepareAndRun(`DELETE FROM user_family_invitations WHERE uuid = ?`, [invitationUuid]);
+    await prepareAndRun(`DELETE FROM external_email_invitations WHERE uuid = ?`, [invitationUuid]);
 
     res.json({success: true});
 }

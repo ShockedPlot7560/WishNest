@@ -13,7 +13,7 @@ export const DB = open({
 })
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function prepareAndAll(sql: string, params: any[]) : Promise<any[]> {
+export async function prepareAndAll(sql: string, params: any[] = []) : Promise<any[]> {
     const db = await DB;
     
     const stmt = await db.prepare(sql);
@@ -24,7 +24,7 @@ export async function prepareAndAll(sql: string, params: any[]) : Promise<any[]>
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
-export async function prepareAndGet(sql: string, params: any[]) : Promise<any> {
+export async function prepareAndGet(sql: string, params: any[] = []) : Promise<any> {
     const db = await DB;
     
     const stmt = await db.prepare(sql);
@@ -32,4 +32,13 @@ export async function prepareAndGet(sql: string, params: any[]) : Promise<any> {
     await stmt.finalize();
 
     return row;
+}
+
+export async function prepareAndRun(sql: string, params: any[] = []) : Promise<any> {
+    const db = await DB;
+    const stmt = await db.prepare(sql);
+    const rows = await stmt.run(params);
+    await stmt.finalize();
+
+    return rows;
 }

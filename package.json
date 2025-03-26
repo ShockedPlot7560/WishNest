@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "api:lint": "eslint api",
     "preview": "vite preview",
     "start:server": "tsx api/server.ts",
     "start:server:dev": "nodemon"

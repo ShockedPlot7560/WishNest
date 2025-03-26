@@ -1,9 +1,8 @@
 import {GiftPrivateData, InternalFamily} from "../interfaces";
 import {AuthenticatedRequest, BaseResponse} from "./controllers";
-import {DB, prepareAndAll} from "../lib/db";
+import {prepareAndAll, prepareAndGet, prepareAndRun} from "../lib/db";
 import {uuid} from "uuidv4";
-import {decryptGroupUserPrivateKey, decryptPrivateData} from "../../lib/crypto";
-import {getPrivateKeyOfUser} from "../../lib/utils";
+import {getPrivateKeyOfUser} from "../lib/utils";
 import { editPrivateData } from "../lib/family_data";
 
 export type GetFamiliesRequest = AuthenticatedRequest<{
@@ -73,14 +72,11 @@ export async function add_family(req: AddFamilyRequest, res: AddFamilyResponse){
         return;
     }
     
-    const db = await DB;
-
     const familyUuid: string = uuid();
-    const prepares = await Promise.all([
-        db.prepare(`INSERT INTO families (uuid, name) VALUES (?, ?)`, [familyUuid, familyName]),
-        db.prepare(`INSERT INTO user_family (user_uuid, family_uuid, name) VALUES (?, ?, ?)`, [userUuid, familyUuid, userName])
+    await Promise.all([
+        prepareAndAll(`INSERT INTO families (uuid, name) VALUES (?, ?)`, [familyUuid, familyName]),
+        prepareAndAll(`INSERT INTO user_family (user_uuid, family_uuid, name) VALUES (?, ?, ?)`, [userUuid, familyUuid, userName])
     ]);
-    await Promise.all(prepares.map(prepare => prepare.run()));
 
     res.json({
         uuid: familyUuid,
@@ -105,8 +101,7 @@ export async function remove_from_family(req: RemoveFromFamilyRequest, res: Remo
         res.status(403).json({error: 'Forbidden'});
         return;
     }
-    const db = await DB;
-    await (await db.prepare(`DELETE FROM user_family WHERE user_uuid = ? AND family_uuid = ?`, [userUuid, familyUuid])).run();
+    await prepareAndRun(`DELETE FROM user_family WHERE user_uuid = ? AND family_uuid = ?`, [userUuid, familyUuid]);
 
     res.json({success: true});
 }
@@ -128,16 +123,14 @@ export type GetFamilyResponse = BaseResponse<{
 export async function get_family(req: GetFamilyRequest, res: GetFamilyResponse) {
     const familyUuid: string = req.params.uuid;
 
-    const db = await DB;
-
-    const family = await (await db.prepare(`SELECT * FROM families WHERE uuid = ?`, [familyUuid])).get();
+    const family = await prepareAndGet(`SELECT * FROM families WHERE uuid = ?`, [familyUuid]);
 
     if(!family){
         res.status(404).json({error: 'Family not found'});
         return;
     }
 
-    const members = await (await db.prepare(`SELECT user_family.user_uuid, user_family.name, users.email FROM user_family INNER JOIN users ON users.uuid = user_family.user_uuid WHERE family_uuid = ?`, [familyUuid])).all();
+    const members = await prepareAndAll(`SELECT user_family.user_uuid, user_family.name, users.email FROM user_family INNER JOIN users ON users.uuid = user_family.user_uuid WHERE family_uuid = ?`, [familyUuid]);
 
     if(!members){
         res.status(404).json({error: 'Members not found'});
@@ -176,41 +169,39 @@ export type GetMemberDataResponse = BaseResponse<{
 export async function get_member_data(req: GetMemberDataRequest, res: GetMemberDataResponse) {
     const {familyUuid, userUuid} = req.params;
 
-    const db = await DB;
-
     const userPrivateKey = await getPrivateKeyOfUser(req.body.jwt.uuid, req.body.jwt.derived_key);
 
     const gifts: {
         uuid: string,
         title: string,
         content: string
-    }[] = await (await db.prepare(`
+    }[] = await prepareAndAll(`
         SELECT uuid, title, content 
         FROM gifts 
             INNER JOIN user_family ON user_family.user_uuid = gifts.user_family_user_uuid AND user_family.family_uuid = gifts.user_family_family_uuid
         WHERE user_family.family_uuid = ? AND user_family.user_uuid = ?
-    `, [familyUuid, userUuid])).all();
+    `, [familyUuid, userUuid]);
 
     const encryptedPrivateData: {
         private_data: string
-    } = await (await db.prepare(`
+    } = await prepareAndGet(`
         SELECT groups.private_data FROM groups
             WHERE groups.target_uuid = ? AND groups.family_uuid = ?
-    `, [userUuid, familyUuid])).get();
+    `, [userUuid, familyUuid]);
 
     const encryptedPrivateKey: {
         encryptedPrivateKey: string
-    } = await (await db.prepare(`
+    } = await prepareAndGet(`
         SELECT group_user.private_key as encryptedPrivateKey
         FROM group_user
             INNER JOIN groups ON groups.uuid = group_user.group_uuid
         WHERE group_user.user_uuid = ? AND groups.family_uuid = ? AND groups.target_uuid = ?
-    `, [req.body.jwt.uuid, familyUuid, userUuid])).get();
+    `, [req.body.jwt.uuid, familyUuid, userUuid]);
 
     let privateData = null;
     if(encryptedPrivateKey && encryptedPrivateData){
-        const privateKey = await decryptGroupUserPrivateKey(encryptedPrivateKey.encryptedPrivateKey, userPrivateKey);
-        privateData = JSON.parse(await decryptPrivateData(encryptedPrivateData.private_data, privateKey));
+       const privateKey = await userPrivateKey.decryptGroupUserPrivateKey(encryptedPrivateKey.encryptedPrivateKey);
+        privateData = JSON.parse(await privateKey.decode(encryptedPrivateData.private_data));
     }
 
     res.json({
@@ -246,28 +237,22 @@ export async function post_member_message(req: PostMemberMessageRequest, res: Po
 
     const userPrivateKey = await getPrivateKeyOfUser(req.body.jwt.uuid, req.body.jwt.derived_key);
 
-    try {
-        await editPrivateData(
-            req.body.jwt.uuid,
-            userPrivateKey,
-            familyUuid,
-            userUuid,
-            giftUuid,
-            (data: GiftPrivateData) => {
-                data.messages.push({
-                    content: message,
-                    timestamp: new Date().toISOString(),
-                    user_uuid: req.body.jwt.uuid
-                });
-    
-                return data;
-            }
-        )
-    } catch {
-        res.json({
-            error: "Error"
-        })
-    }
+    await editPrivateData(
+        req.body.jwt.uuid,
+        userPrivateKey,
+        familyUuid,
+        userUuid,
+        giftUuid,
+        (data: GiftPrivateData) => {
+            data.messages.push({
+                content: message,
+                timestamp: new Date().toISOString(),
+                user_uuid: req.body.jwt.uuid
+            });
+
+            return data;
+        }
+    )
 
     res.json({success: true});
 }
@@ -324,7 +309,7 @@ export type DenyGiftResponse = BaseResponse<{
     success: true
 }>;
 
-export async function deny_gift(req: AcceptGiftRequest, res: AcceptGiftResponse) {
+export async function deny_gift(req: DenyGiftRequest, res: DenyGiftResponse) {
     const {familyUuid, userUuid, giftUuid} = req.params;
 
     if(userUuid === req.body.jwt.uuid){
@@ -372,7 +357,8 @@ export type AddGiftResponse = BaseResponse<{
 
 export async function add_gift(req: AddGiftRequest, res: AddGiftResponse) {
     const {familyUuid, userUuid} = req.params;
-    let {title, content} = req.body;
+    const title: string = req.body.title;
+    let content: string = req.body.content;
 
     if(!content) {
         content = "";
@@ -383,11 +369,9 @@ export async function add_gift(req: AddGiftRequest, res: AddGiftResponse) {
         return;
     }
 
-    const db = await DB;
-
     const giftUuid = uuid();
 
-    await (await db.prepare(`INSERT INTO gifts (uuid, title, content, user_family_user_uuid, user_family_family_uuid) VALUES (?, ?, ?, ?, ?)`, [giftUuid, title, content, userUuid, familyUuid])).run();
+    await prepareAndRun(`INSERT INTO gifts (uuid, title, content, user_family_user_uuid, user_family_family_uuid) VALUES (?, ?, ?, ?, ?)`, [giftUuid, title, content, userUuid, familyUuid]);
 
     res.json({success: true});
 }
@@ -405,9 +389,7 @@ export type DeleteGiftResponse = BaseResponse<{
 export async function delete_gift(req: DeleteGiftRequest, res: DeleteGiftResponse) {
     const {giftUuid} = req.params;
 
-    const db = await DB;
-
-    await (await db.prepare(`DELETE FROM gifts WHERE uuid = ?`, [giftUuid])).run();
+    await prepareAndRun(`DELETE FROM gifts WHERE uuid = ?`, [giftUuid]);
 
     res.json({success: true});
 }

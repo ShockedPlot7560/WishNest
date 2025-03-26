@@ -1,6 +1,5 @@
-import {DerivedKey} from "../../lib/types";
+import { DerivedKey } from "./crypto";
 import jwt from 'jsonwebtoken';
-import {derivedKeyFromB64, derivedKeyToB64} from "../../lib/crypto";
 const { verify, sign } = jwt;
 
 export type JwtToken = {
@@ -21,7 +20,7 @@ export async function decodeJwt(jwt: string) : Promise<false|JwtToken> {
                     resolve({
                         uuid: decoded.uuid,
                         email: decoded.email,
-                        derived_key: await derivedKeyFromB64(decoded.derived_key)
+                        derived_key: await DerivedKey.fromB64(decoded.derived_key)
                     });
                 }
             }
@@ -31,7 +30,7 @@ export async function decodeJwt(jwt: string) : Promise<false|JwtToken> {
 
 export async function encodeJwt(data: JwtToken) : Promise<string> {
     return new Promise((resolve, reject) => {
-        derivedKeyToB64(data.derived_key).then((derivedKey) => {
+        data.derived_key.toB64().then((derivedKey: string) => {
             sign({
                 uuid: data.uuid,
                 email: data.email,

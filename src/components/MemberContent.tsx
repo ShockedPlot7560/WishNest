@@ -23,7 +23,6 @@ export default function MemberContent(props: {member: null | {uuid: string, name
         setLoading(true);
         return axios.get("/family/" + props.familyId + "/member/" + props.member?.uuid)
             .then(response => {
-                console.log(response.data);
                 setGifts(response.data.gifts);
                 setPrivateData(response.data.private_data);
                 if(response.data.private_data !== null) {

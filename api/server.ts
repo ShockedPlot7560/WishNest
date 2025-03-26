@@ -44,13 +44,17 @@ app.use((req, res, next) => {
 });
 const apiPrefix = '/api';
 app.use(apiPrefix, authenticated);
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-    console.error(err.stack); // Log de l'erreur pour le débogage
-    res.status(err.status || 500).json({
-        error: {
-            message: err.message || 'Internal Server Error',
-        },
-    });
+app.use((req, res, next) => {
+    try {
+        next();
+    } catch (err) {
+        logger.error(err);
+        res.status(500).json({
+            error: {
+                message: err.message || 'Internal Server Error',
+            },
+        })
+    }
 });
   
 

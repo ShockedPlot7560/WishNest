@@ -1,11 +1,8 @@
 import {Request} from "express";
-import {derivedKeyToB64, exportUserPublicKey} from "../../lib/crypto";
 import {getUserApi} from "../lib/users";
-import {checkPassword} from "../../lib/login";
+import {checkPassword} from "../lib/login";
 import {AuthenticatedRequest, BaseResponse} from "./controllers";
 import {encodeJwt} from "../lib/security";
-import { sendMail } from "../lib/email";
-import { uuid } from "uuidv4";
 import { logger } from "../lib/logger";
 
 const userApi = getUserApi();
@@ -22,7 +19,7 @@ export async function get_users(req: AuthenticatedRequest, res: GetUsersResponse
     const ret: GetUsersResponseContent[] = [];
     for (const user of await (await userApi).getUsers()) {
         ret.push({
-            public_key: await exportUserPublicKey(user.public_key),
+            public_key: await user.public_key.export(),
             uuid: user.uuid,
             email: user.email
         });
@@ -105,7 +102,7 @@ export async function check_user(req: CheckUserRequest, res: CheckUserResponse){
                 uuid: user.uuid,
                 email: user.email,
                 verified: user.verified,
-                derivedKey: await derivedKeyToB64(user.derived_key),
+                derivedKey: await user.derived_key.toB64(),
                 jwt: await encodeJwt({
                     uuid: user.uuid,
                     email: user.email,
