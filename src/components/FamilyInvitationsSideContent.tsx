@@ -25,7 +25,7 @@ export default function FamilyInvitationsSideContent({refreshFamilies}: {refresh
             });
     }, [user?.uuid]);
 
-    return (
+    return (invitations === null || invitations.length > 0) ? (
         <>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }} >
                 Invitations reçues
@@ -61,5 +61,5 @@ export default function FamilyInvitationsSideContent({refreshFamilies}: {refresh
                 </ListItem>}
             </List>
         </>
-    );
+    ) : null;
 }

@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import MenuContent from './MenuContent';
 import {useAuth} from "../provider/AuthProvider.tsx";
+import OptionsMenu from "./OptionsMenu.tsx";
 
 const drawerWidth = 240;
 
@@ -64,9 +65,10 @@ export default function SideMenu() {
                 />
                 <Box sx={{ mr: 'auto' }}>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {user.email}
+                        {user.email.length > 15 ? `${user.email.substring(0, 15)}...` : user.email}
                     </Typography>
                 </Box>
+                <OptionsMenu/>
             </Stack>
         </Drawer>
     );

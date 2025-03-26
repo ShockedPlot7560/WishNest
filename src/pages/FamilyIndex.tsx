@@ -121,9 +121,9 @@ export default function FamilyIndex() {
                                     </List>
                                 </CardContent>
                             </Card>
-                            <FamilyInvitations invitations={invitations} onRemove={(uuid: string) => {
+                            {invitations.length > 0 && <FamilyInvitations invitations={invitations} onRemove={(uuid: string) => {
                                 setInvitations(invitations?.filter(i => i.uuid !== uuid) ?? null);
-                            }}/>
+                            }}/>}
                         </Stack>
                     </Grid>
                     <Grid item xs={12} md={9}>
