@@ -1,18 +1,14 @@
 services:
   api:
-    build:
-      context: .
-      dockerfile: Dockerfile.api
+    image: ghcr.io/shockedplot7560/wishnest/api:latest
     volumes:
       - ./api/data:/usr/src/app/api/data
     ports:
       - "3000:3000"
 
   front:
-    build:
-      context: .
-      dockerfile: Dockerfile.front
+    image: ghcr.io/shockedplot7560/wishnest/front:latest
     ports:
-      - "8080:80"
+      - "80:80"
     depends_on:
       - api

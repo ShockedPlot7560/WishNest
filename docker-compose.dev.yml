@@ -1,0 +1,10 @@
+services:
+  api:
+    volumes:
+      - ./api/data:/usr/src/app/api/data
+    ports:
+      - "3000:3000"
+
+  front:
+    ports:
+      - "8080:80"
