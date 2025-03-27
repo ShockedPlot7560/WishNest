@@ -11,7 +11,6 @@ import LogoutRoundedIcon from '@mui/icons-material/LogoutRounded';
 import MoreVertRoundedIcon from '@mui/icons-material/MoreVertRounded';
 import {useAuth} from "../provider/AuthProvider.tsx";
 import {useNavigate} from "react-router-dom";
-import Button from "@mui/material/Button";
 import {Badge, badgeClasses, IconButton, IconButtonProps} from "@mui/material";
 
 const MenuItem = styled(MuiMenuItem)({

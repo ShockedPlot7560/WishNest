@@ -1,4 +1,4 @@
-import {Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, Divider, Grid2, IconButton, Paper, TextField, Typography} from "@mui/material";
+import {Alert, Box, Button, CircularProgress, Dialog, DialogActions, DialogContent, Divider, Grid, IconButton, Paper, TextField, Typography} from "@mui/material";
 import {useAuth} from "../provider/AuthProvider.tsx";
 import React, { useEffect, useState } from "react";
 import { Check, Close, Lock, PriorityHigh, Send } from "@mui/icons-material";
@@ -65,8 +65,8 @@ export default function GiftPrivateContentPopup(props: {gift: {
                     </IconButton>
                 </DialogActions>
                 <DialogContent>
-                    <Grid2 container spacing={2}>
-                        <Grid2 size={{
+                    <Grid container spacing={2}>
+                        <Grid size={{
                             xs: 12,
                             sm: 12,
                             md: 5
@@ -125,8 +125,8 @@ export default function GiftPrivateContentPopup(props: {gift: {
                                     }
                                 </Box>
                             </Paper>
-                        </Grid2>
-                        <Grid2 size={{
+                        </Grid>
+                        <Grid size={{
                             xs: 12,
                             sm: 12,
                             md: 7
@@ -207,8 +207,8 @@ export default function GiftPrivateContentPopup(props: {gift: {
                                 </form>
                                 </>}
                             </Paper>
-                        </Grid2>
-                    </Grid2>
+                        </Grid>
+                    </Grid>
                 </DialogContent>
             </Dialog>
         </React.Fragment>

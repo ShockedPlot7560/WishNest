@@ -95,7 +95,10 @@ export default function FamilyIndex() {
 
                 <Grid container spacing={2}>
                 {familyId && <ApproveGroupPopup familyId={familyId}/>}
-                    <Grid item xs={12} md={3}>
+                    <Grid size={{
+                        xs: 12,
+                        md: 3
+                    }}>
                         <Stack spacing={2}>
                             <Card>
                                 <CardContent>
@@ -121,12 +124,15 @@ export default function FamilyIndex() {
                                     </List>
                                 </CardContent>
                             </Card>
-                            {invitations.length > 0 && <FamilyInvitations invitations={invitations} onRemove={(uuid: string) => {
+                            {(invitations !== null && invitations.length > 0) && <FamilyInvitations invitations={invitations} onRemove={(uuid: string) => {
                                 setInvitations(invitations?.filter(i => i.uuid !== uuid) ?? null);
                             }}/>}
                         </Stack>
                     </Grid>
-                    <Grid item xs={12} md={9}>
+                    <Grid size={{
+                        xs: 12,
+                        md: 9
+                    }}>
                         <MemberContent member={choosenMember} familyId={familyId ?? ""}/>
                     </Grid>
                 </Grid>

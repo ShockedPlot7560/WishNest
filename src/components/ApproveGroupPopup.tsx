@@ -23,41 +23,41 @@ export default function ApproveGroupPopup(props: {familyId: string}) {
     }, [props.familyId, user?.uuid]);
 
     return (
-        <>
-        {requestsToApprove.length !== 0 && <Grid item xs={12}>
-            <Card className="MuiCard-error">
-                <CardContent>
-                    <Typography gutterBottom>
-                        Vous avez des demandes d'adhésion à approuver
-                    </Typography>
-                    <Typography  sx={{ color: 'text.secondary' }}>
-                        Cette demandes surviennent lorsqu'un membre rejoint une famille. Il a besoin de l'approbation d'un membre de chaque groupe de la famille pour avoir accès aux données chiffrées.
-                    </Typography>
-                    <List>
-                        {requestsToApprove.map((request, index) => {
-                            return (<ListItem key={index}>
-                                    <ListItemAvatar>
-                                        <Avatar>
-                                            <ImportContactsSharp />
-                                        </Avatar>
-                                    </ListItemAvatar>
-                                    <ListItemText
-                                        sx={{
-                                            flexGrow: 0
-                                        }}
-                                        primary={request.originName}
-                                        secondary={"Souhaite rejoindre le groupe dédié à : " + request.targetName}
-                                    />
-                                    <Box sx={{marginLeft: '1rem'}}></Box>
-                                    <ApproveGroupRequestButton groupUuid={request.groupUuid} targetUuid={request.targetUuid} onSuccess={() => {
-                                        setRequestsToApprove(requestsToApprove.filter(r => r.groupUuid !== request.groupUuid));
-                                    }}/>
-                                </ListItem>
-                            )})}
-                    </List>
-                </CardContent>
-            </Card>
-        </Grid>}
-        </>
+        <Grid container>
+            {requestsToApprove.length !== 0 && <Grid size={12}>
+                <Card className="MuiCard-error">
+                    <CardContent>
+                        <Typography gutterBottom>
+                            Vous avez des demandes d'adhésion à approuver
+                        </Typography>
+                        <Typography  sx={{ color: 'text.secondary' }}>
+                            Cette demandes surviennent lorsqu'un membre rejoint une famille. Il a besoin de l'approbation d'un membre de chaque groupe de la famille pour avoir accès aux données chiffrées.
+                        </Typography>
+                        <List>
+                            {requestsToApprove.map((request, index) => {
+                                return (<ListItem key={index}>
+                                        <ListItemAvatar>
+                                            <Avatar>
+                                                <ImportContactsSharp />
+                                            </Avatar>
+                                        </ListItemAvatar>
+                                        <ListItemText
+                                            sx={{
+                                                flexGrow: 0
+                                            }}
+                                            primary={request.originName}
+                                            secondary={"Souhaite rejoindre le groupe dédié à : " + request.targetName}
+                                        />
+                                        <Box sx={{marginLeft: '1rem'}}></Box>
+                                        <ApproveGroupRequestButton groupUuid={request.groupUuid} targetUuid={request.targetUuid} onSuccess={() => {
+                                            setRequestsToApprove(requestsToApprove.filter(r => r.groupUuid !== request.groupUuid));
+                                        }}/>
+                                    </ListItem>
+                                )})}
+                        </List>
+                    </CardContent>
+                </Card>
+            </Grid>}
+        </Grid>
     );
 }
