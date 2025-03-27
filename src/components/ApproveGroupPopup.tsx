@@ -22,9 +22,9 @@ export default function ApproveGroupPopup(props: {familyId: string}) {
             });
     }, [props.familyId, user?.uuid]);
 
-    return (
+    return requestsToApprove.length !== 0 && (
         <Grid container>
-            {requestsToApprove.length !== 0 && <Grid size={12}>
+            <Grid size={12}>
                 <Card className="MuiCard-error">
                     <CardContent>
                         <Typography gutterBottom>
@@ -57,7 +57,7 @@ export default function ApproveGroupPopup(props: {familyId: string}) {
                         </List>
                     </CardContent>
                 </Card>
-            </Grid>}
+            </Grid>
         </Grid>
     );
 }
