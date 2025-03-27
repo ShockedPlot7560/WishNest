@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, IconButton, LinearProgress} from "@mui/material";
+import {Box, Card, CardContent, LinearProgress} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useEffect, useState} from "react";
@@ -8,7 +8,6 @@ import GiftPrivateContentPopup from "./GiftPrivateContentPopup.tsx";
 import { GroupPrivateData } from "../../api/interfaces/index.ts";
 import AddSelfGift from "./AddSelfGift.tsx";
 import DeleteSelfGift from "./DeleteSelfGift.tsx";
-import { Edit } from "@mui/icons-material";
 import EditSelfGift from "./EditSelfGift.tsx";
 
 export default function MemberContent(props: {member: null | {uuid: string, name: string}, familyId: string}) {

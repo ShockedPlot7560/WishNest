@@ -66,7 +66,11 @@ export default function GiftPopup(props: {
                         setLoading(false);
                         props.setOpen(false);
                     });
-            }} color="primary" variant="contained">
+            }} color="primary" variant="contained"
+                disabled={loading}
+                loading={loading}
+                loadingPosition="start"
+            >
                 {edit ? "Modifier" : "Proposer"}
             </Button>
         </DialogActions>
