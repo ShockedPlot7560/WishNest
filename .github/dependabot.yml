@@ -2,10 +2,6 @@ version: 2
 updates:
   - package-ecosystem: "npm" 
     directory: "/"           
-    commit-message:
-      prefix: "deps"
-    ignore:
-      - dependency-name: "*" 
     rebase-strategy: "auto" 
     target-branch: "stable"
     schedule:
