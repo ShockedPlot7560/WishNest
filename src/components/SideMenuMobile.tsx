@@ -5,6 +5,9 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import MenuContent from './MenuContent';
 import { useAuth } from '../provider/AuthProvider';
+import { Button } from '@mui/material';
+import { LogoutRounded } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 interface SideMenuMobileProps {
   open: boolean | undefined;
@@ -12,7 +15,8 @@ interface SideMenuMobileProps {
 }
 
 export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobileProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <Drawer
@@ -54,6 +58,14 @@ export default function SideMenuMobile({ open, toggleDrawer }: SideMenuMobilePro
             toggleDrawer(false);
           }} />
         </Stack>
+      </Stack>
+      <Stack sx={{ p: 2 }}>
+        <Button variant="outlined" fullWidth startIcon={<LogoutRounded />} onClick={() => {
+          logout();
+          navigate("/login", { replace: true });
+        }}>
+          Se déconnecter
+        </Button>
       </Stack>
     </Drawer>
   );
