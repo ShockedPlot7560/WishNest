@@ -2,6 +2,7 @@ import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogC
 import axios from "axios";
 import { useState } from "react";
 import { useAuth } from "../provider/AuthProvider";
+import GiftPopup from "./GiftPopup";
 
 export default function AddSelfGift(props: {
     familyId: string,
@@ -9,21 +10,15 @@ export default function AddSelfGift(props: {
 }) {
 
     const [open, setOpen] = useState(false)
-    const [loading, setLoading] = useState(false);
-    const [title, setTitle] = useState("");
-    const [content, setContent] = useState("");
     const {user} = useAuth();
 
-    function create() {
-        setLoading(true);
-        axios.post("/family/" + props.familyId + "/member/" + user?.uuid + "/gift", {
+    async function create(title: string, content: string) {
+        await axios.post("/family/" + props.familyId + "/member/" + user?.uuid + "/gift", {
             title: title,
             content: content
+        }).finally(() => {
+            props.onAdd();
         })
-            .finally(() => {
-                setLoading(false);
-                props.onAdd();
-            })
     }
 
 
@@ -32,56 +27,18 @@ export default function AddSelfGift(props: {
             <Button 
                 variant="contained" 
                 onClick={() => setOpen(true)}
-                disabled={loading}
-                startIcon={loading ? <CircularProgress/> : null}
             >
                 Proposer un cadeau
             </Button>
-            <Dialog open={open} onClose={() => setOpen(false)}>
-                <DialogTitle>
-                    Proposer un cadeau
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Ce cadeau sera proposé à tout les membres de la famille.
-                    </DialogContentText>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="title"
-                        label="Titre"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        onChange={(e) => {
-                            setTitle(e.target.value);
-                        }}
-                    />
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        id="content"
-                        label="Description"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        onChange={(e) => {
-                            setContent(e.target.value);
-                        }}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpen(false)} color="inherit">
-                        Annuler
-                    </Button>
-                    <Button onClick={() => {
-                        create();
-                        setOpen(false);
-                    }} color="primary" autoFocus variant="contained">
-                        Ajouter
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            <GiftPopup
+                content={null}
+                title={null}
+                open={open}
+                setOpen={setOpen}
+                onAdd={(title: string, content: string) => {
+                    return create(title, content);
+                }}
+            />
         </>
     );
 }

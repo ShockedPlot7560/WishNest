@@ -393,3 +393,47 @@ export async function delete_gift(req: DeleteGiftRequest, res: DeleteGiftRespons
 
     res.json({success: true});
 }
+
+export type UpdateGiftRequest = AuthenticatedRequest<{
+    familyUuid: string,
+    userUuid: string,
+    giftUuid: string
+}, {
+    title: string,
+    content: string
+}>;
+
+export type UpdateGiftResponse = BaseResponse<{
+    success: true
+}>;
+
+export async function update_gift(req: UpdateGiftRequest, res: UpdateGiftResponse) {
+    const {familyUuid, userUuid, giftUuid} = req.params;
+    const title: string = req.body.title;
+    let content: string = req.body.content;
+
+    if(!content) {
+        content = "";
+    }
+
+    if(!title){
+        res.status(400).json({error: 'Bad parameter'});
+        return;
+    }
+
+    const gift = await prepareAndGet(`SELECT * FROM gifts WHERE uuid = ?`, [giftUuid]);
+    if(!gift){
+        res.status(404).json({error: 'Gift not found'});
+        return;
+    }
+
+    if(gift.user_family_user_uuid !== userUuid || gift.user_family_family_uuid !== familyUuid){
+        res.status(403).json({error: 'Forbidden'});
+
+        return;
+    }
+
+    await prepareAndRun(`UPDATE gifts SET title = ?, content = ? WHERE uuid = ?`, [title, content, giftUuid]);
+
+    res.json({success: true});
+}

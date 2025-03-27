@@ -1,4 +1,4 @@
-import {Box, Card, CardContent, LinearProgress} from "@mui/material";
+import {Box, Card, CardContent, IconButton, LinearProgress} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
 import {useEffect, useState} from "react";
@@ -8,6 +8,8 @@ import GiftPrivateContentPopup from "./GiftPrivateContentPopup.tsx";
 import { GroupPrivateData } from "../../api/interfaces/index.ts";
 import AddSelfGift from "./AddSelfGift.tsx";
 import DeleteSelfGift from "./DeleteSelfGift.tsx";
+import { Edit } from "@mui/icons-material";
+import EditSelfGift from "./EditSelfGift.tsx";
 
 export default function MemberContent(props: {member: null | {uuid: string, name: string}, familyId: string}) {
     const [gifts, setGifts] = useState<null | {
@@ -72,9 +74,21 @@ export default function MemberContent(props: {member: null | {uuid: string, name
                 {gifts !== null && gifts.map((gift, index) => (
                     <Card sx={{marginTop: '1rem'}} key={index}>
                         <CardContent>
-                            <Typography variant="h5">
-                                {gift.title}
-                            </Typography>
+                            <Stack direction="row" spacing={2} sx={{
+                                justifyContent: 'space-between'
+                            }}>
+                                <Typography variant="h5">
+                                    {gift.title}
+                                </Typography>
+                                {props.member?.uuid === user?.uuid &&
+                                <EditSelfGift
+                                    familyId={props.familyId}
+                                    gift={gift}
+                                    onEdit={() => {
+                                        fetchPrivateData();
+                                    }}
+                                />}
+                            </Stack>
                             <Typography variant="body1">
                                 {gift.content}
                             </Typography>

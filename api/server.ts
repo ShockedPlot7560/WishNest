@@ -11,7 +11,8 @@ import {
     get_family,
     get_member_data,
     post_member_message,
-    remove_from_family
+    remove_from_family,
+    update_gift
 } from "./controllers/family_controller";
 import {
     accept_family_invitation,
@@ -118,6 +119,9 @@ app.use((req, res, next) => {
 
     // Suppression d'un cadeau
     app.delete(apiPrefix + '/family/:familyUuid/member/:userUuid/gift/:giftUuid', delete_gift);
+
+    // Modification d'un cadeau
+    app.put(apiPrefix + '/family/:familyUuid/member/:userUuid/gift/:giftUuid', update_gift);
 
     // vérification utilisateur
     app.post(apiPrefix + '/users/verify', verify_user);
