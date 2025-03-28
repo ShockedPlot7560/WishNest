@@ -1,15 +1,24 @@
-console.log('Service Worker loaded');
-
-self.addEventListener('install', (event) => {
-console.log('Service Worker installé');
-event.waitUntil(self.skipWaiting()); // Activation immédiate
+self.addEventListener('install', event => {
+  event.waitUntil(
+      self.skipWaiting()
+  );
 });
 
-self.addEventListener('activate', (event) => {
-console.log('Service Worker activé');
-event.waitUntil(self.clients.claim()); // Prend le contrôle des pages ouvertes
+self.addEventListener('activate', event => {
+  event.waitUntil(
+      clients.claim()
+  );
 });
 
-self.addEventListener('fetch', (event) => {
-console.log('Intercepting request:', event.request.url);
+self.addEventListener('push', event => {
+  const data = event.data ? JSON.parse(event.data.text()) : null;
+  if(!data) {
+    console.error("No data received in push event");
+    return;
+  }
+  
+  console.log("Push event received:", data);
+  event.waitUntil(
+      self.registration.showNotification(data.title, data.options)
+  );
 });

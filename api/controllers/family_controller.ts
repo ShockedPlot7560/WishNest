@@ -4,6 +4,7 @@ import {prepareAndAll, prepareAndGet, prepareAndRun} from "../lib/db";
 import {uuid} from "uuidv4";
 import {getPrivateKeyOfUser} from "../lib/utils";
 import { editPrivateData } from "../lib/family_data";
+import { sendNotification } from "../lib/notification";
 
 export type GetFamiliesRequest = AuthenticatedRequest<{
     uuid: string
@@ -48,6 +49,12 @@ export async function get_families(req: GetFamiliesRequest, res: GetFamiliesResp
             )
         );
     }
+    sendNotification(userUuid, {
+        title: 'Hello !',
+        options: {
+            body: 'Vous avez ' + result.length + ' familles',
+        }
+    });
 
     res.json(await Promise.all(promises));
 }

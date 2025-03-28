@@ -16,6 +16,7 @@ import FamilyIndex from "./pages/FamilyIndex.tsx";
 import Register from './pages/Register.tsx';
 import axios from 'axios';
 import AxiosProvider from './provider/AxiosProvider.tsx';
+import FingerprintJS from '@fingerprintjs/fingerprintjs';
 
 const router = createBrowserRouter(
     createRoutesFromElements(
@@ -38,14 +39,55 @@ if (derivedKey) {
     axios.defaults.headers.common["derivedKey"] = derivedKey;
 }
 
-if ('serviceWorker' in navigator) {
-    console.log('Service Worker is supported');
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then((registration) => console.log('Service Worker registered', registration))
-        .catch((error) => console.error('Service Worker registration failed', error));
-    });
+async function subscribeUser() {
+    if (!('serviceWorker' in navigator)) {
+        console.log("Service workers are not supported in this browser.");
+        return;
+    }
+
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+        console.log("Push notifications are supported!");
+    }else{
+        console.log("Push notifications are not supported!");
+        return;
+    }
+  
+    await navigator.serviceWorker.register('/service-worker.js');
+    const fp = await FingerprintJS.load();
+
+    const { visitorId } = await fp.get();
+
+    const serverKey = await axios.get("/push-server-key")
+        .then((response) => response.data.key);
+
+    console.log("ServerKey : ", serverKey);
+
+    navigator.serviceWorker.ready
+        .then(registration => {
+            registration.addEventListener('push', event => {
+                console.log("Push event received", event);
+            }); 
+
+            return registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: serverKey
+            });
+        })
+        .then(subscription => {
+            console.log('Abonnement réussi:', JSON.stringify(subscription));
+
+            // Une fois l'utilisateur abonné, on envoie l'abonnement au backend
+            return axios.post('http://localhost:3000/api/subscribe-push', {
+                subscription: subscription,
+                deviceUuid: visitorId
+            });
+        })
+        .catch(err => {
+            console.error('Erreur lors de l\'abonnement aux notifications push:', err);
+        });
 }
+
+subscribeUser();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

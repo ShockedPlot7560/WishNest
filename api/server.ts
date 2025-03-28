@@ -27,6 +27,7 @@ import {authenticated} from "./controllers/controllers";
 import * as dotenv from 'dotenv'
 import { logger } from './lib/logger';
 import { uuid } from 'uuidv4';
+import { app_server_key, subscribe_push } from './controllers/notification_controller';
 
 const app = express();
 const PORT = 3000;
@@ -125,6 +126,10 @@ app.use((req, res, next) => {
 
     // vérification utilisateur
     app.post(apiPrefix + '/users/verify', verify_user);
+
+    app.post(apiPrefix + "/subscribe-push", subscribe_push);
+
+    app.get(apiPrefix + "/push-server-key", app_server_key);
 
     // Démarrer le serveur
     app.listen(PORT, () => {

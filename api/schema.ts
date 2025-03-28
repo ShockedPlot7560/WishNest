@@ -136,6 +136,23 @@ async function createExternalEmailInvitation(db: Database) {
     `);
 }
 
+async function createPushSubscriptionTable(db: Database) {
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS push_subscriptions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_uuid TEXT NOT NULL,
+            device_id TEXT NOT NULL,
+            endpoint TEXT NOT NULL,
+            p256dh TEXT NOT NULL,
+            auth TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_uuid) REFERENCES users(uuid) ON DELETE CASCADE,
+            UNIQUE(user_uuid, device_id)
+        );
+    `);
+}
+
 async function createAll(db: Database) {
     logger.info("Creating all tables");
     await Promise.all([
@@ -149,7 +166,8 @@ async function createAll(db: Database) {
         createGiftTable(db),
         createCommentTable(db),
         createSettingsTable(db),
-        createExternalEmailInvitation(db)
+        createExternalEmailInvitation(db),
+        createPushSubscriptionTable(db),
     ])
 }
 
