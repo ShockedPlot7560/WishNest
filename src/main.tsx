@@ -38,6 +38,15 @@ if (derivedKey) {
     axios.defaults.headers.common["derivedKey"] = derivedKey;
 }
 
+if ('serviceWorker' in navigator) {
+    console.log('Service Worker is supported');
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then((registration) => console.log('Service Worker registered', registration))
+        .catch((error) => console.error('Service Worker registration failed', error));
+    });
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
       <AppTheme>
